@@ -1,0 +1,69 @@
+---
+// A company's brand mark: the hand-curated logo (public/logos/{code}.*) when one
+// exists, otherwise a deterministic monogram tile — the same real-logo-or-monogram
+// rule the OG cards use, so a page and its share card always agree. resolveLogo()
+// reads the filesystem, which is fine here: this only ever renders during
+// `astro build`, never on the client.
+import { resolveLogo, hueForCode, monogramText } from '../lib/logo';
+
+interface Props {
+  code: string;
+  name: string;
+  /** Rendered box size in px. */
+  size?: number;
+}
+
+const { code, name, size = 64 } = Astro.props;
+const logo = resolveLogo(code);
+const hue = hueForCode(code);
+const mono = monogramText(name);
+const monoFont = [...mono].length >= 2 ? size * 0.4 : size * 0.52;
+---
+
+{
+  logo ? (
+    <img
+      class="c-logo c-logo-img"
+      src={logo.url}
+      alt={`${name} 標誌`}
+      loading="lazy"
+      decoding="async"
+      style={`--sz:${size}px`}
+    />
+  ) : (
+    <span
+      class="c-logo c-logo-mono"
+      style={`--sz:${size}px; --h:${hue}; font-size:${monoFont}px`}
+      aria-hidden="true"
+    >
+      {mono}
+    </span>
+  )
+}
+
+<style>
+  .c-logo {
+    width: var(--sz, 64px);
+    height: var(--sz, 64px);
+    border-radius: 22%;
+    flex: none;
+  }
+  .c-logo-img {
+    object-fit: contain;
+    background: #fff;
+    /* Fixed-ratio of the tile's OWN size — NOT a % (percentage padding resolves against
+       the containing block's width, which would balloon the box and hide the logo). */
+    padding: calc(var(--sz, 64px) * 0.14);
+    box-sizing: border-box;
+    border: 1px solid var(--border);
+  }
+  .c-logo-mono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 800;
+    line-height: 1;
+    background: linear-gradient(135deg, hsl(var(--h) 42% 42%), hsl(var(--h) 46% 32%));
+  }
+</style>
