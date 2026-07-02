@@ -1,0 +1,97 @@
+---
+// Built to dist/404.html; Cloudflare Pages serves it automatically for unknown
+// paths — no _redirects / config needed.
+import Base from '../layouts/Base.astro';
+
+const title = '找不到頁面｜台灣上市櫃薪資查詢';
+const description = '找不到這個頁面。可能是公司代號不存在，或該公司非上市櫃公司。回首頁搜尋，或看排行榜與產業總覽。';
+---
+
+<Base title={title} description={description} canonical="/404/">
+  <meta slot="head" name="robots" content="noindex" />
+
+  <article class="notfound">
+    <p class="code">404</p>
+    <h1>找不到這個頁面</h1>
+    <p class="lead">你要找的頁面不存在，或網址已經變動。</p>
+
+    <div class="hints">
+      <p>可能的原因：</p>
+      <ul>
+        <li>公司代號不存在，或打錯了。</li>
+        <li>該公司不是上市／上櫃公司（例如興櫃、KY 或外國公司），不在本站資料範圍。</li>
+        <li>該公司在收錄的年度（民國 108–114）尚未上市櫃或已下市櫃。</li>
+      </ul>
+    </div>
+
+    <nav class="links" aria-label="繼續瀏覽">
+      <a class="link primary" href="/">回首頁搜尋公司</a>
+      <a class="link" href="/rank/median/">看薪資排行榜</a>
+      <a class="link" href="/industry/">產業總覽</a>
+    </nav>
+  </article>
+</Base>
+
+<style>
+  .notfound {
+    margin: 48px 0;
+    max-width: 60ch;
+  }
+  .code {
+    margin: 0;
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .notfound h1 {
+    margin: 8px 0 0;
+    font-size: clamp(1.5rem, 1.2rem + 1.4vw, 2rem);
+  }
+  .lead {
+    margin: 10px 0 0;
+    color: var(--text-secondary);
+  }
+  .hints {
+    margin-top: 24px;
+    color: var(--text-secondary);
+  }
+  .hints p {
+    margin: 0 0 6px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .hints ul {
+    margin: 0;
+    padding-inline-start: 20px;
+    line-height: 1.8;
+  }
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 28px;
+  }
+  .link {
+    padding: 8px 18px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text-secondary);
+    font-weight: 550;
+  }
+  .link:hover {
+    text-decoration: none;
+    color: var(--link);
+    border-color: var(--border-strong);
+  }
+  .link.primary {
+    background: var(--seg-fill);
+    border-color: var(--seg-fill);
+    color: #fff;
+  }
+  .link.primary:hover {
+    color: #fff;
+  }
+</style>

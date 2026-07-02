@@ -1,0 +1,169 @@
+---
+import Base from '../../layouts/Base.astro';
+import Explainer from '../../components/Explainer.astro';
+import RankTable from '../../components/RankTable.astro';
+import { formatInt, rocToCe } from '../../lib/format';
+import type { CompaniesFile } from '../../lib/types';
+import { buildRanking, type RankMetric } from '../../lib/rank';
+import companiesData from '../../data/companies.json';
+
+const companiesFile = companiesData as unknown as CompaniesFile;
+const META_LATEST = companiesFile.meta.latestYear;
+const ceYear = rocToCe(META_LATEST);
+
+export function getStaticPaths() {
+  const metrics: RankMetric[] = ['median', 'average', 'raise'];
+  return metrics.map((metric) => ({ params: { metric }, props: { metric } }));
+}
+
+interface PageProps {
+  metric: RankMetric;
+}
+const { metric } = Astro.props as PageProps;
+
+const { rows, excluded } = buildRanking(companiesFile, metric);
+
+// Tab-like cross-links between the three ranking pages.
+const tabs = [
+  { metric: 'median', label: '中位數', href: '/rank/median/' },
+  { metric: 'average', label: '平均數', href: '/rank/average/' },
+  { metric: 'raise', label: '調薪幅度', href: '/rank/raise/' },
+] as const;
+
+// Per-page copy. `extraNote` is appended to the eligibility note where relevant.
+const COPY: Record<RankMetric, { title: string; description: string; h1: string; intro: string; extraNote?: string }> = {
+  median: {
+    title: `全台員工薪資中位數 Top 100｜上市櫃公司排行（${ceYear}）`,
+    description: `民國 ${META_LATEST} 年度（${ceYear}）台灣上市櫃公司非主管全時員工「薪資中位數」最高的 100 家排行，附平均數與員工數對照。資料來源公開資訊觀測站 t100sb15。`,
+    h1: '員工薪資中位數 Top 100',
+    intro: `民國 ${META_LATEST} 年度（${ceYear}）上市＋上櫃公司中，非擔任主管職務之全時員工「薪資中位數」最高的 100 家。中位數比平均數更能代表多數員工的實際薪資。`,
+  },
+  average: {
+    title: `全台員工薪資平均數 Top 100｜上市櫃公司排行（${ceYear}）`,
+    description: `民國 ${META_LATEST} 年度（${ceYear}）台灣上市櫃公司非主管全時員工「薪資平均數」最高的 100 家排行，附中位數與員工數對照。資料來源公開資訊觀測站 t100sb15。`,
+    h1: '員工薪資平均數 Top 100',
+    intro: `民國 ${META_LATEST} 年度（${ceYear}）上市＋上櫃公司中，非擔任主管職務之全時員工「薪資平均數」最高的 100 家。平均數容易被少數高薪拉高，故另附中位數對照。`,
+  },
+  raise: {
+    title: `全台員工調薪幅度 Top 100｜上市櫃公司排行（${ceYear}）`,
+    description: `民國 ${META_LATEST} 年度（${ceYear}）台灣上市櫃公司非主管全時員工「薪資中位數年增幅」最大的 100 家排行，附中位數與前一年中位數對照。資料來源公開資訊觀測站 t100sb15。`,
+    h1: '員工調薪幅度 Top 100',
+    intro: `民國 ${META_LATEST} 年度（${ceYear}）上市＋上櫃公司中，非擔任主管職務之全時員工薪資「中位數年增幅」最大的 100 家。年增以中位數計算，較能反映多數員工的加薪狀況。`,
+    extraNote: '年增以中位數計算。',
+  },
+};
+const copy = COPY[metric];
+
+let note = `僅列入 ${META_LATEST} 年度平均員工人數 ≥ 30 人之公司（排除 ${formatInt(excluded)} 家）；資料年度：民國 ${META_LATEST} 年（${ceYear}）。`;
+if (copy.extraNote) note = `${note}${copy.extraNote}`;
+---
+
+<Base title={copy.title} description={copy.description} canonical={`/rank/${metric}/`}>
+  <article class="rank">
+    <header class="r-head">
+      <p class="crumb"><a href="/">薪資查詢</a> / 排行榜</p>
+      <h1>{copy.h1}</h1>
+      <p class="intro">{copy.intro}</p>
+    </header>
+
+    <nav class="tabs" aria-label="排行榜切換">
+      {
+        tabs.map((t) => (
+          <a
+            href={t.href}
+            class:list={['tab', t.metric === metric ? 'is-active' : '']}
+            aria-current={t.metric === metric ? 'page' : undefined}>
+            {t.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <p class="rank-note">{note}</p>
+
+    <RankTable metric={metric} rows={rows} ariaLabel={`${copy.h1}（民國 ${META_LATEST} 年度）`} />
+
+    <section class="foot">
+      <Explainer compact />
+      <p class="source">
+        資料來源：<a href="https://mopsov.twse.com.tw/mops/web/t100sb15" target="_blank" rel="noopener"
+          >公開資訊觀測站 t100sb15</a
+        >。此為「非擔任主管職務之全時員工」薪資，單位：萬元（新台幣）。
+      </p>
+    </section>
+  </article>
+</Base>
+
+<style>
+  .rank {
+    margin: 20px 0;
+  }
+  .crumb {
+    margin: 0 0 4px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+  .r-head h1 {
+    margin: 0 0 8px;
+    font-size: clamp(1.4rem, 1.1rem + 1.4vw, 1.9rem);
+  }
+  .intro {
+    margin: 0;
+    max-width: 64ch;
+    color: var(--text-secondary);
+  }
+
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 18px 0 12px;
+  }
+  .tab {
+    padding: 6px 16px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 550;
+  }
+  .tab:hover {
+    text-decoration: none;
+    color: var(--link);
+    border-color: var(--border-strong);
+  }
+  .tab.is-active {
+    background: var(--seg-fill);
+    border-color: var(--seg-fill);
+    color: #fff;
+  }
+  .tab.is-active:hover {
+    color: #fff;
+  }
+
+  .rank-note {
+    margin: 0 0 14px;
+    padding: 10px 14px;
+    background: var(--surface-alt);
+    border: 1px solid var(--border);
+    border-inline-start: 3px solid var(--accent);
+    border-radius: var(--radius);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+
+  .foot {
+    margin-top: 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .source {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    line-height: 1.6;
+    margin: 0;
+  }
+</style>

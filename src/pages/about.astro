@@ -1,0 +1,192 @@
+---
+import Base from '../layouts/Base.astro';
+import Explainer from '../components/Explainer.astro';
+import { formatInt } from '../lib/format';
+import type { CompaniesFile } from '../lib/types';
+import companiesData from '../data/companies.json';
+
+const companiesFile = companiesData as unknown as CompaniesFile;
+const META_LATEST = companiesFile.meta.latestYear;
+const companyCount = companiesFile.meta.counts.companies;
+
+const MOPS_URL = 'https://mopsov.twse.com.tw/mops/web/t100sb15';
+// Placeholder until the repo is public; Stage 6/7 can swap in the real URL.
+const REPO_URL = 'https://github.com/bobo52310/TaiwanSalary';
+
+// FAQ as data so Stage 6 can lift the same Q&A into FAQPage JSON-LD without
+// re-typing it. Keep answers plain-text (no markup) for that reason.
+const faqs: { q: string; a: string }[] = [
+  {
+    q: '為什麼查不到某家公司？',
+    a: '資料僅涵蓋本國上市與上櫃公司。KY 公司、外國企業與 TDR（台灣存託憑證）不在申報範圍；興櫃公司也不在範圍內。若某公司在該年度尚未上市櫃，或已下市／下櫃，也可能查不到。',
+  },
+  {
+    q: '金控／投控的員工數為什麼那麼多？',
+    a: '依 MOPS 申報規定，金控、投控等公司的薪資資訊須納入合併報表之子公司，因此員工數會涵蓋整個集團，遠高於母公司本身。',
+  },
+  {
+    q: '薪資包含哪些項目？',
+    a: '為「非擔任主管職務之全時員工」的年度薪資，包含經常性薪資、加班費，以及獎金、紅利等非經常性給與。不含主管職員工，也不含非全時（兼職、部分工時）員工。單位為新台幣。',
+  },
+  {
+    q: '為什麼有些公司沒有中位數年增？',
+    a: '若該公司該年度為首次揭露（前一年度未上市櫃或未申報），沒有可比較的前一年數字，因此不計算中位數年增。',
+  },
+  {
+    q: '男女薪資是什麼時候開始揭露的？',
+    a: `自民國 ${META_LATEST} 年度起，MOPS 才要求揭露非主管全時員工的男女平均與中位數薪資，因此僅 ${META_LATEST} 年度（含）以後的資料才有性別分項。`,
+  },
+  {
+    q: '數字跟新聞報導不一樣？',
+    a: '最常見的原因是單位換算。MOPS 原始資料單位為「仟元」，本站一律換算為「萬元」顯示（仟元 ÷ 10）。此外新聞常以月薪估算，或採用不同年度、不同口徑，數字自然會有差異。',
+  },
+];
+
+const title = '關於本站｜資料來源與常見問題';
+const description = `台灣上市櫃薪資查詢的資料來源（公開資訊觀測站 MOPS t100sb15）、更新頻率、中位數與平均數的差異，以及查不到公司、金控員工數、薪資項目等常見問題整理。`;
+---
+
+<Base title={title} description={description} canonical="/about/">
+  <article class="about">
+    <header>
+      <p class="crumb"><a href="/">薪資查詢</a> / 關於</p>
+      <h1>關於本站</h1>
+    </header>
+
+    <section class="block">
+      <h2>這是什麼網站</h2>
+      <p>
+        「台灣上市櫃薪資查詢」是一個<strong>非官方</strong>的資料查詢工具，把公開資訊觀測站（MOPS）的
+        <a href={MOPS_URL} target="_blank" rel="noopener">t100sb15「非擔任主管職務之全時員工薪資資訊」</a>
+        整理成好查詢、好比較的介面。收錄民國 108 至 {META_LATEST} 年度、上市與上櫃公司，共約
+        <strong>{formatInt(companyCount)}</strong> 家（含期間曾揭露、後續已下市／下櫃的公司）。
+      </p>
+    </section>
+
+    <section class="block">
+      <h2>資料從哪裡來、多久更新</h2>
+      <p>
+        資料來源為<a href={MOPS_URL} target="_blank" rel="noopener">公開資訊觀測站（MOPS）</a>。依規定，上市櫃公司須於每年
+        <strong>6 月底前</strong>公布前一年度的非主管全時員工薪資資訊；本站於資料公布後補上最新年度，
+        <strong>每年更新一次</strong>。所有金額為「年薪」，包含經常性給與與非經常性給與（獎金、紅利皆計入），單位為新台幣。
+      </p>
+    </section>
+
+    <section class="block">
+      <h2>中位數 vs 平均數</h2>
+      <Explainer />
+      <p class="note">
+        當一家公司有少數高階或資深員工年薪特別高時，平均數會被大幅拉高，中位數則不受影響。因此要看一家公司多數員工的薪資水準，中位數通常比平均數更具參考價值。本站的排行榜與個股頁都同時提供兩者，方便對照。
+      </p>
+    </section>
+
+    <section class="block">
+      <h2>常見問題</h2>
+      <div class="faq">
+        {
+          faqs.map((f) => (
+            <details class="faq-item">
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="block">
+      <h2>資料授權與引用</h2>
+      <p>
+        本站資料來源為公開資訊觀測站，原始資料依<strong>政府資料開放授權條款</strong>開放使用。本站程式碼開放於
+        <a href={REPO_URL} target="_blank" rel="noopener">GitHub</a>。若引用本站數據，請一併註明原始資料來源為
+        <strong>公開資訊觀測站（MOPS）t100sb15</strong>。
+      </p>
+    </section>
+
+    <section class="block">
+      <h2>免責聲明</h2>
+      <p>
+        本站為非官方工具，所有數字<strong>僅供參考</strong>，並可能因整理、單位換算或資料更新而與原始公告有出入；
+        一切以 MOPS 原始公告為準。每個頁面皆附有回到
+        <a href={MOPS_URL} target="_blank" rel="noopener">公開資訊觀測站</a>的連結，建議查證原始資料。
+      </p>
+    </section>
+  </article>
+</Base>
+
+<style>
+  .about {
+    margin: 20px 0;
+    max-width: 72ch;
+  }
+  .crumb {
+    margin: 0 0 4px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+  .about h1 {
+    margin: 0;
+    font-size: clamp(1.4rem, 1.1rem + 1.4vw, 1.9rem);
+  }
+  .block {
+    margin-top: 28px;
+  }
+  .block h2 {
+    margin: 0 0 10px;
+    font-size: 1.15rem;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .about p {
+    margin: 0 0 10px;
+    color: var(--text-secondary);
+    line-height: 1.75;
+  }
+  .about strong {
+    color: var(--text);
+    font-weight: 650;
+  }
+  .note {
+    margin-top: 12px;
+    font-size: 0.92rem;
+  }
+
+  .faq {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .faq-item {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    overflow: hidden;
+  }
+  .faq-item summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 12px 16px;
+    font-weight: 600;
+    color: var(--text);
+    position: relative;
+    padding-inline-end: 40px;
+  }
+  .faq-item summary::-webkit-details-marker {
+    display: none;
+  }
+  .faq-item summary::after {
+    content: '＋';
+    position: absolute;
+    inset-inline-end: 16px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+  .faq-item[open] summary::after {
+    content: '－';
+  }
+  .faq-item p {
+    margin: 0;
+    padding: 0 16px 14px;
+    font-size: 0.92rem;
+  }
+</style>

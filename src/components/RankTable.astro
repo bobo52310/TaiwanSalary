@@ -1,0 +1,186 @@
+---
+// Static ranking table for the three /rank/ pages. It's a fixed ranking (not the
+// sortable homepage/industry table), so no data-salary-table / table-enhance —
+// simpler and it renders the same with or without JS. Leading columns
+// (#/代號/名稱/產業/市場) and the trailing 員工數 are shared; the metric columns in
+// between vary by page.
+import { formatWan, formatPct, formatEmployees } from '../lib/format';
+import type { Market } from '../lib/types';
+import type { RankMetric, RankRow } from '../lib/rank';
+
+interface Props {
+  metric: RankMetric;
+  rows: RankRow[];
+  ariaLabel: string;
+}
+const { metric, rows, ariaLabel } = Astro.props;
+
+const marketLabel = (m: Market): string => (m === 'sii' ? '上市' : '上櫃');
+const changeClass = (p: number | null): string =>
+  p == null ? '' : p > 0 ? 'up' : p < 0 ? 'down' : '';
+
+interface MetricCol {
+  label: string;
+  hint?: string;
+  /** true = the page's headline metric column, rendered a touch stronger. */
+  strong?: boolean;
+  cell: (r: RankRow) => string;
+  /** Extra td class per row, e.g. up/down for the coloured 年增 column. */
+  rowClass?: (r: RankRow) => string;
+}
+
+const metricCols: MetricCol[] =
+  metric === 'median'
+    ? [
+        { label: '中位數', hint: '萬', strong: true, cell: (r) => formatWan(r.medianK) },
+        { label: '平均數', hint: '萬', cell: (r) => formatWan(r.avgK) },
+      ]
+    : metric === 'average'
+      ? [
+          { label: '平均數', hint: '萬', strong: true, cell: (r) => formatWan(r.avgK) },
+          { label: '中位數', hint: '萬', cell: (r) => formatWan(r.medianK) },
+        ]
+      : [
+          {
+            label: '中位數年增',
+            strong: true,
+            cell: (r) => formatPct(r.medianChangePct),
+            rowClass: (r) => changeClass(r.medianChangePct),
+          },
+          { label: '中位數', hint: '萬', cell: (r) => formatWan(r.medianK) },
+          { label: '前一年中位數', hint: '萬', cell: (r) => formatWan(r.medianPrevK) },
+        ];
+---
+
+<div class="rank-table">
+  <table aria-label={ariaLabel}>
+    <thead>
+      <tr>
+        <th class="c-rank" scope="col">#</th>
+        <th class="c-code" scope="col">代號</th>
+        <th class="c-name" scope="col">名稱</th>
+        <th class="c-ind" scope="col">產業</th>
+        <th class="c-mkt" scope="col">市場</th>
+        {
+          metricCols.map((c) => (
+            <th class="c-num" scope="col">
+              {c.label}
+              {c.hint ? <span class="th-hint">（{c.hint}）</span> : null}
+            </th>
+          ))
+        }
+        <th class="c-num c-emp" scope="col">員工數</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        rows.map((r) => (
+          <tr>
+            <td class="c-rank">{r.rank}</td>
+            <td class="c-code">{r.code}</td>
+            <td class="c-name">
+              <a href={`/company/${r.code}/`}>{r.name}</a>
+            </td>
+            <td class="c-ind">
+              <a href={`/industry/${encodeURIComponent(r.industry)}/`}>{r.industry}</a>
+            </td>
+            <td class="c-mkt">{marketLabel(r.market)}</td>
+            {metricCols.map((c) => (
+              <td class:list={['c-num', c.strong ? 'c-strong' : '', c.rowClass ? c.rowClass(r) : '']}>
+                {c.cell(r)}
+              </td>
+            ))}
+            <td class="c-num c-emp">{formatEmployees(r.employees)}</td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .rank-table {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+  .rank-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  .rank-table th,
+  .rank-table td {
+    text-align: left;
+    padding: 7px 12px;
+    white-space: nowrap;
+  }
+  .rank-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--surface);
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.82rem;
+    border-bottom: 1.5px solid var(--border-strong);
+  }
+  .rank-table .th-hint {
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .rank-table tbody tr {
+    border-top: 1px solid var(--border);
+  }
+  .rank-table tbody tr:hover {
+    background: var(--row-hover);
+  }
+  .rank-table .c-rank,
+  .rank-table .c-code,
+  .rank-table .c-num {
+    font-variant-numeric: tabular-nums;
+  }
+  .rank-table .c-rank {
+    color: var(--text-secondary);
+    text-align: right;
+    width: 1%;
+    padding-inline-end: 14px;
+  }
+  .rank-table th.c-num,
+  .rank-table td.c-num {
+    text-align: right;
+  }
+  .rank-table td.c-num {
+    color: var(--text);
+  }
+  .rank-table td.c-strong {
+    font-weight: 650;
+  }
+  .rank-table .c-name a {
+    font-weight: 550;
+  }
+  .rank-table .c-ind a {
+    color: var(--text-secondary);
+  }
+  .rank-table .c-mkt {
+    color: var(--text-secondary);
+  }
+  .rank-table td.up {
+    color: var(--pos);
+  }
+  .rank-table td.down {
+    color: var(--neg);
+  }
+
+  @media (max-width: 640px) {
+    .rank-table .c-ind,
+    .rank-table .c-emp {
+      display: none;
+    }
+    .rank-table th,
+    .rank-table td {
+      padding: 7px 9px;
+    }
+  }
+</style>
