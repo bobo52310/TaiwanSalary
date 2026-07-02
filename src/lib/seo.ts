@@ -73,13 +73,14 @@ export function faqPage(faqs: Faq[]): JsonLd {
  */
 export function website(
   site: URL | undefined,
-  opts: { name: string; description: string },
+  opts: { name: string; alternateName?: string; description: string },
 ): JsonLd {
   const home = abs(site, '/');
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: opts.name,
+    ...(opts.alternateName ? { alternateName: opts.alternateName } : {}),
     url: home,
     description: opts.description,
     inLanguage: 'zh-Hant',

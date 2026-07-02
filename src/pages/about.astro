@@ -20,7 +20,9 @@ const REPO_URL = 'https://github.com/bobo52310/TaiwanSalary';
 const faqJsonLd = faqPage(faqs);
 
 const title = '關於本站｜資料來源與常見問題';
-const description = `台灣上市櫃薪資查詢的資料來源（公開資訊觀測站 MOPS t100sb15）、更新頻率、中位數與平均數的差異，以及查不到公司、金控員工數、薪資項目等常見問題整理。`;
+const description = `「哪家給最多」台灣上市櫃薪資查詢的資料來源（公開資訊觀測站 MOPS）、更新頻率、中位數與平均數的差異，以及查不到公司、金控員工數、薪資項目等常見問題整理。`;
+
+const BLOG_URL = 'https://bobochen.dev/';
 ---
 
 <Base title={title} description={description} canonical="/about/">
@@ -35,8 +37,8 @@ const description = `台灣上市櫃薪資查詢的資料來源（公開資訊�
     <section class="block">
       <h2>這是什麼網站</h2>
       <p>
-        「台灣上市櫃薪資查詢」是一個<strong>非官方</strong>的資料查詢工具，把公開資訊觀測站（MOPS）的
-        <a href={MOPS_URL} target="_blank" rel="noopener">t100sb15「非擔任主管職務之全時員工薪資資訊」</a>
+        「哪家給最多」是一個<strong>非官方</strong>的台灣上市櫃薪資查詢工具，把公開資訊觀測站（MOPS）的
+        <a href={MOPS_URL} target="_blank" rel="noopener">「非擔任主管職務之全時員工薪資資訊」</a>
         整理成好查詢、好比較的介面。收錄民國 108 至 {META_LATEST} 年度、上市與上櫃公司，共約
         <strong>{formatInt(companyCount)}</strong> 家（含期間曾揭露、後續已下市／下櫃的公司）。
       </p>
@@ -78,7 +80,18 @@ const description = `台灣上市櫃薪資查詢的資料來源（公開資訊�
       <p>
         本站資料來源為公開資訊觀測站，原始資料依<strong>政府資料開放授權條款</strong>開放使用。本站程式碼開放於
         <a href={REPO_URL} target="_blank" rel="noopener">GitHub</a>。若引用本站數據，請一併註明原始資料來源為
-        <strong>公開資訊觀測站（MOPS）t100sb15</strong>。
+        <strong>公開資訊觀測站（MOPS）</strong>。
+      </p>
+    </section>
+
+    <section class="block">
+      <h2>關於作者</h2>
+      <p>
+        本站由 <strong>Bobo Chen</strong> 開發與維護——一位有二十多年經驗的軟體開發者，也是兩個孩子的爸。
+        平常在個人部落格
+        <a href={BLOG_URL} target="_blank" rel="noopener">Bobo 的學思山丘（bobochen.dev）</a>
+        整理 AI 工程、後端與雲端、以及創業與職涯的學習筆記，這個薪資查詢站也是其中一個 side project。
+        歡迎前往逛逛，或回報問題與建議。
       </p>
     </section>
 

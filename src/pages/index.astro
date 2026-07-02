@@ -1,6 +1,5 @@
 ---
 import Base from '../layouts/Base.astro';
-import Explainer from '../components/Explainer.astro';
 import SalaryTable from '../components/SalaryTable.astro';
 import { formatWanUnit, formatInt, rocToCe } from '../lib/format';
 import type {
@@ -76,11 +75,12 @@ const chips = [
 const industryList = Object.keys(industries).sort((a, b) => a.localeCompare(b, 'zh-Hant'));
 const total = formatInt(rows.length);
 
-const title = '台灣上市櫃薪資查詢 | 非主管全時員工年薪中位數';
+const title = '哪家給最多｜台灣上市櫃薪資查詢 · 非主管全時員工年薪中位數';
 const description = `查詢台灣 ${total} 家上市櫃公司「非擔任主管職務之全時員工」的年薪中位數、平均數與年增率。資料來源：公開資訊觀測站，民國 ${latestYear} 年度。`;
 
 const siteJsonLd = website(Astro.site, {
-  name: '台灣上市櫃薪資查詢',
+  name: '哪家給最多',
+  alternateName: '台灣上市櫃薪資查詢',
   description:
     '查詢台灣上市櫃公司「非擔任主管職務之全時員工」的年薪中位數、平均數與年增率，資料來自公開資訊觀測站（MOPS）。',
 });
@@ -90,13 +90,15 @@ const siteJsonLd = website(Astro.site, {
   <script type="application/ld+json" is:inline slot="head" set:html={JSON.stringify(siteJsonLd)} />
 
   <section class="hero">
-    <h1>台灣上市櫃薪資查詢</h1>
+    <p class="year-badge">
+      <span class="dot" aria-hidden="true"></span>
+      最新資料 · 民國 {latestYear} 年度（{rocToCe(latestYear)}）
+    </p>
+    <h1>哪家給最多<span class="hero-sub">台灣上市櫃薪資查詢</span></h1>
     <p class="tagline">
       一次查詢 {total} 家上市櫃公司「非擔任主管職務之全時員工」的年薪中位數、平均數與年增，資料來自公開資訊觀測站。
     </p>
   </section>
-
-  <Explainer compact />
 
   <ul class="chips" aria-label="全市場統計摘要">
     {
@@ -145,9 +147,38 @@ const siteJsonLd = website(Astro.site, {
   .hero {
     margin: 24px 0 16px;
   }
+  .year-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0 0 10px;
+    padding: 4px 11px;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    color: var(--accent);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  .year-badge .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
   .hero h1 {
     margin: 0 0 8px;
-    font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2rem);
+    font-size: clamp(1.7rem, 1.2rem + 2vw, 2.4rem);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px 12px;
+  }
+  .hero-sub {
+    font-size: clamp(0.95rem, 0.85rem + 0.5vw, 1.1rem);
+    font-weight: 500;
+    color: var(--text-secondary);
   }
   .tagline {
     margin: 0;

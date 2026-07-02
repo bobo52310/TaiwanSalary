@@ -33,6 +33,9 @@ const changeClass = (p: number | null): string =>
   <table data-salary-table aria-label={`民國 ${year} 年度上市櫃公司非主管全時員工薪資`}>
     <thead>
       <tr>
+        <th class="c-rank" scope="col">
+          <span class="th-label">排名</span>
+        </th>
         {
           columns.map((c) => (
             <th
@@ -54,8 +57,9 @@ const changeClass = (p: number | null): string =>
     </thead>
     <tbody>
       {
-        rows.map((r) => (
+        rows.map((r, i) => (
           <tr data-c={r.code} data-n={r.name} data-i={r.industry} data-m={r.market}>
+            <td class="c-rank">{i + 1}</td>
             <td class="c-code">{r.code}</td>
             <td class="c-name">
               <a href={`/company/${r.code}/`}>{r.name}</a>
@@ -78,7 +82,7 @@ const changeClass = (p: number | null): string =>
         ))
       }
       <tr data-empty hidden>
-        <td colspan={columns.length}>找不到符合條件的公司</td>
+        <td colspan={columns.length + 1}>找不到符合條件的公司</td>
       </tr>
     </tbody>
   </table>
@@ -165,6 +169,22 @@ const changeClass = (p: number | null): string =>
   }
   .salary-table tr[hidden] {
     display: none;
+  }
+
+  /* Rank column: positional index, not sortable data. Renumbered client-side to
+     follow the current sort/filter; server-rendered 1..N as the no-JS fallback. */
+  .salary-table .c-rank {
+    width: 1%;
+    text-align: right;
+    padding-inline-end: 14px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-secondary);
+  }
+  .salary-table thead th.c-rank {
+    cursor: default;
+  }
+  .salary-table thead th.c-rank:hover {
+    color: var(--text-secondary);
   }
 
   /* Numeric columns: right-aligned, tabular figures so digits line up. */

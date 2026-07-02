@@ -14,7 +14,7 @@ interface Props {
 
 const { title, description, canonical, ogImage = '/og-default.png' } = Astro.props;
 
-const SITE_NAME = '台灣上市櫃薪資查詢';
+const SITE_NAME = '哪家給最多';
 
 // Astro.site is set in astro.config.mjs, so this is always absolute.
 const canonicalURL = new URL(canonical ?? Astro.url.pathname, Astro.site);
@@ -51,7 +51,10 @@ const ogImageURL = ogImageExists ? new URL(ogImage, Astro.site).href : null;
   <body>
     <header class="site-header">
       <div class="wrap">
-        <a href="/" class="site-brand">台灣上市櫃薪資查詢</a>
+        <a href="/" class="site-brand">
+          <span class="site-brand-name">哪家給最多</span>
+          <span class="site-brand-sub">台灣上市櫃薪資查詢</span>
+        </a>
         <nav class="site-nav" aria-label="主要導覽">
           <a href="/rank/median/">排行榜</a>
           <a href="/industry/">產業</a>
@@ -66,14 +69,31 @@ const ogImageURL = ogImageExists ? new URL(ogImage, Astro.site).href : null;
 
     <footer class="site-footer">
       <div class="wrap">
-        <span
-          >資料來源：<a
-            href="https://mopsov.twse.com.tw/mops/web/t100sb15"
-            target="_blank"
-            rel="noopener">公開資訊觀測站（t100sb15）</a
-          ></span
-        >
-        <span>非官方網站，僅供參考。</span>
+        <div class="footer-top">
+          <div class="footer-brand">
+            <span class="footer-brand-name">哪家給最多</span>
+            <span class="footer-brand-sub">台灣上市櫃薪資查詢</span>
+          </div>
+          <nav class="footer-nav" aria-label="頁尾導覽">
+            <a href="/">薪資查詢</a>
+            <a href="/rank/median/">排行榜</a>
+            <a href="/industry/">產業</a>
+            <a href="/about/">關於</a>
+          </nav>
+        </div>
+        <div class="footer-meta">
+          <span
+            >資料來源：<a
+              href="https://mopsov.twse.com.tw/mops/web/t100sb15"
+              target="_blank"
+              rel="noopener">公開資訊觀測站</a
+            ></span
+          >
+          <span>非官方網站，僅供參考。</span>
+          <span
+            >由 <a href="https://bobochen.dev/" target="_blank" rel="noopener">Bobo Chen</a> 製作</span
+          >
+        </div>
       </div>
     </footer>
   </body>

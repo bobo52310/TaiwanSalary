@@ -97,6 +97,19 @@ function init(): void {
     }
   }
 
+  // The first cell of every row is the 排名 column: a positional index, not data.
+  // After any sort or filter it must reflect the row's live position, so we walk the
+  // tbody in DOM order and renumber the visible rows 1..N. (Server-rendered 1..N in
+  // median-desc order is the no-JS fallback.)
+  function renumber(): void {
+    let n = 0;
+    for (const tr of Array.from(tbody.rows)) {
+      if (tr === emptyRow || tr.hidden) continue;
+      const cell = tr.cells[0];
+      if (cell) cell.textContent = String(++n);
+    }
+  }
+
   function applyFilter(): void {
     const q = normalize(state.q.trim());
     let shown = 0;
@@ -110,10 +123,13 @@ function init(): void {
     }
     if (countEl) countEl.textContent = shown.toLocaleString('en-US');
     if (emptyRow) emptyRow.hidden = shown !== 0;
+    renumber();
   }
 
   function setAria(): void {
     headEls.forEach((th, i) => {
+      // The 排名 header carries no data-key and isn't sortable — leave it untouched.
+      if (!colKeys[i]) return;
       th.setAttribute(
         'aria-sort',
         colKeys[i] !== state.sort ? 'none' : state.dir === 'asc' ? 'ascending' : 'descending',
@@ -143,6 +159,7 @@ function init(): void {
     tbody.appendChild(frag);
     if (emptyRow) tbody.appendChild(emptyRow); // keep the empty-state row last
     setAria();
+    renumber();
   }
 
   function syncURL(): void {

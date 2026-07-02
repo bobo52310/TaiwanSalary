@@ -7,7 +7,7 @@ import sitemap from '@astrojs/sitemap';
 // (canonical, OG, sitemap, robots, JSON-LD) derives from it, so a domain change
 // is a one-line edit here.
 export default defineConfig({
-  site: 'https://taiwansalary.pages.dev',
+  site: 'https://salary.bobochen.dev',
   trailingSlash: 'always',
   output: 'static',
   integrations: [sitemap()],

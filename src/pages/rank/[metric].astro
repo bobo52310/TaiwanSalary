@@ -35,19 +35,19 @@ const tabs = [
 const COPY: Record<RankMetric, { title: string; description: string; h1: string; intro: string; extraNote?: string }> = {
   median: {
     title: `全台員工薪資中位數 Top 100｜上市櫃公司排行（${ceYear}）`,
-    description: `民國 ${META_LATEST} 年度（${ceYear}）台灣上市櫃公司非主管全時員工「薪資中位數」最高的 100 家排行，附平均數與員工數對照。資料來源公開資訊觀測站 t100sb15。`,
+    description: `民國 ${META_LATEST} 年度（${ceYear}）台灣上市櫃公司非主管全時員工「薪資中位數」最高的 100 家排行，附平均數與員工數對照。資料來源公開資訊觀測站。`,
     h1: '員工薪資中位數 Top 100',
     intro: `民國 ${META_LATEST} 年度（${ceYear}）上市＋上櫃公司中，非擔任主管職務之全時員工「薪資中位數」最高的 100 家。中位數比平均數更能代表多數員工的實際薪資。`,
   },
   average: {
     title: `全台員工薪資平均數 Top 100｜上市櫃公司排行（${ceYear}）`,
-    description: `民國 ${META_LATEST} 年度（${ceYear}）台灣上市櫃公司非主管全時員工「薪資平均數」最高的 100 家排行，附中位數與員工數對照。資料來源公開資訊觀測站 t100sb15。`,
+    description: `民國 ${META_LATEST} 年度（${ceYear}）台灣上市櫃公司非主管全時員工「薪資平均數」最高的 100 家排行，附中位數與員工數對照。資料來源公開資訊觀測站。`,
     h1: '員工薪資平均數 Top 100',
     intro: `民國 ${META_LATEST} 年度（${ceYear}）上市＋上櫃公司中，非擔任主管職務之全時員工「薪資平均數」最高的 100 家。平均數容易被少數高薪拉高，故另附中位數對照。`,
   },
   raise: {
     title: `全台員工調薪幅度 Top 100｜上市櫃公司排行（${ceYear}）`,
-    description: `民國 ${META_LATEST} 年度（${ceYear}）台灣上市櫃公司非主管全時員工「薪資中位數年增幅」最大的 100 家排行，附中位數與前一年中位數對照。資料來源公開資訊觀測站 t100sb15。`,
+    description: `民國 ${META_LATEST} 年度（${ceYear}）台灣上市櫃公司非主管全時員工「薪資中位數年增幅」最大的 100 家排行，附中位數與前一年中位數對照。資料來源公開資訊觀測站。`,
     h1: '員工調薪幅度 Top 100',
     intro: `民國 ${META_LATEST} 年度（${ceYear}）上市＋上櫃公司中，非擔任主管職務之全時員工薪資「中位數年增幅」最大的 100 家。年增以中位數計算，較能反映多數員工的加薪狀況。`,
     extraNote: '年增以中位數計算。',
@@ -104,7 +104,7 @@ const rankJsonLd = itemList(
       <Explainer compact />
       <p class="source">
         資料來源：<a href="https://mopsov.twse.com.tw/mops/web/t100sb15" target="_blank" rel="noopener"
-          >公開資訊觀測站 t100sb15</a
+          >公開資訊觀測站</a
         >。此為「非擔任主管職務之全時員工」薪資，單位：萬元（新台幣）。
       </p>
     </section>
