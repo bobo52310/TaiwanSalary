@@ -19,27 +19,27 @@
 ## Stage 3: 查詢頁(SSR 表格 + 即時搜尋)
 **Goal**: 首頁一頁查詢 1,826 家(最新年度),搜尋/排序/篩選全在前端
 **Success Criteria**: 全列 SSR;搜尋排序 <50ms;頁面 gzip ≤~120KB;關 JS 表格仍可讀
-**Status**: In Progress
+**Status**: ✅ Complete(commit da270ae;實測 100KB gz,瀏覽器 E2E 通過)
 
 ## Stage 4: 個股頁 + 產業頁
 **Goal**: /company/[code]/(~1,847 頁,含下市 badge)+ /industry/[name]/(~35 頁)
 **Success Criteria**: /company/2330/ 與 MOPS 數值一致(7 年趨勢、性別、同業);build <2 分鐘
-**Status**: Not Started
+**Status**: ✅ Complete(commit 0f853ce;1,884 頁 3.2s;另根治新上市假 0% 年增)
 
 ## Stage 5: 排行榜 + about + 404
 **Goal**: /rank/{median,average,raise}/(top 100,員工數 ≥30 門檻)+ /about/ + 404
 **Success Criteria**: 排行與手動排序一致;門檻在頁面聲明;about 含方法論/授權/FAQ/免責
-**Status**: Not Started
+**Status**: ✅ Complete(commit 4bc16ec)
 
 ## Stage 6: SEO + polish
 **Goal**: meta/OG/canonical/JSON-LD、sitemap、robots、_headers、手機審視
 **Success Criteria**: sitemap ~1,900 URL;JSON-LD 驗證通過;Lighthouse mobile ≥95
-**Status**: Not Started
+**Status**: ✅ Complete(sitemap 1,888 URL;JSON-LD 全頁驗證;Lighthouse 96–100/100/100/100)
 
 ## Stage 7: 部署 + 文件
 **Goal**: CF Pages git integration 設定說明;README 重寫(zh-TW,含年度更新 runbook)
 **Success Criteria**: production URL 上線;/company/2330/ 正確;快取 header 生效
-**Status**: Not Started
+**Status**: ✅ Docs Complete(README 含部署步驟;CF Pages 連結需使用者於 dashboard 操作)
 
 ## 年度更新 Runbook(每年 6 月底)
 1. `npm run data:fetch -- --year 115`(兩市場,自動間隔 90s)
