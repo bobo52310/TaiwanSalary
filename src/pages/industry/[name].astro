@@ -1,0 +1,185 @@
+---
+import Base from '../../layouts/Base.astro';
+import TrendChart from '../../components/TrendChart.astro';
+import IndustryTable from '../../components/IndustryTable.astro';
+import Explainer from '../../components/Explainer.astro';
+import { formatWanUnit, formatInt, rocToCe } from '../../lib/format';
+import type { CompaniesFile, IndustriesFile, IndustryTableRow } from '../../lib/types';
+import companiesData from '../../data/companies.json';
+import industriesData from '../../data/industries.json';
+
+const companiesFile = companiesData as unknown as CompaniesFile;
+const industries = industriesData as unknown as IndustriesFile;
+const META_LATEST = companiesFile.meta.latestYear;
+
+export function getStaticPaths() {
+  const file = industriesData as unknown as IndustriesFile;
+  // param `name` is the raw Chinese industry name; Astro URL-encodes it on output.
+  return Object.keys(file).map((name) => ({ params: { name }, props: { name } }));
+}
+
+interface PageProps {
+  name: string;
+}
+const { name } = Astro.props as PageProps;
+
+// Every company whose canonical industry is this one, at its newest available year.
+const rows: IndustryTableRow[] = Object.values(companiesFile.companies)
+  .filter((c) => c.industry === name)
+  .map((c) => {
+    const ys = Object.keys(c.years)
+      .map(Number)
+      .sort((a, b) => a - b);
+    const ly = ys[ys.length - 1]!;
+    const d = c.years[String(ly)]!;
+    // prevK 0/null ⇒ the company's first appearance, so its change is a synthetic
+    // 0, not a real raise; surface it as "no data" rather than a misleading 0%.
+    const medianChangePct =
+      d.medianPrevK != null && d.medianPrevK !== 0 ? d.medianChangePct : null;
+    return {
+      code: c.code,
+      name: c.name,
+      market: c.market,
+      medianK: d.medianK,
+      avgK: d.avgK,
+      medianChangePct,
+      employees: d.employees,
+      year: ly,
+      stale: ly < META_LATEST,
+    };
+  })
+  .sort((a, b) => {
+    if (a.medianK == null) return b.medianK == null ? 0 : 1;
+    if (b.medianK == null) return -1;
+    return b.medianK - a.medianK;
+  });
+
+const staleCount = rows.filter((r) => r.stale).length;
+
+// Industry-level yearly trend (medians-of-medians + averages-of-averages).
+const indYears = industries[name] ?? {};
+const trendYears = Object.keys(indYears)
+  .map(Number)
+  .sort((a, b) => a - b);
+const medianOfMedians = trendYears.map((y) => indYears[String(y)]!.medianOfMediansK);
+const avgOfAvg = trendYears.map((y) => indYears[String(y)]!.avgOfAvgK);
+
+// Headline stats prefer the site's latest year, else the industry's newest year.
+const latestKey = indYears[String(META_LATEST)] ? META_LATEST : trendYears[trendYears.length - 1]!;
+const latestStat = latestKey != null ? indYears[String(latestKey)]! : null;
+const ceYear = rocToCe(latestKey ?? META_LATEST);
+
+const title = `${name} 薪資排行｜${latestStat ? formatInt(latestStat.count) : rows.length} 家公司中位數比較（${ceYear}）`;
+const description = latestStat
+  ? `${name}共 ${formatInt(latestStat.count)} 家上市櫃公司，民國 ${latestKey} 年度非主管全時員工薪資「中位數的中位數」為 ${formatWanUnit(latestStat.medianOfMediansK)}，平均為 ${formatWanUnit(latestStat.avgOfAvgK)}。逐家公司中位數、平均與年增排行。`
+  : `${name}上市櫃公司非主管全時員工薪資排行。`;
+---
+
+<Base title={title} description={description} canonical={`/industry/${encodeURIComponent(name)}/`}>
+  <article class="industry">
+    <header class="i-head">
+      <p class="crumb"><a href="/">薪資查詢</a> / <a href="/industry/">產業</a></p>
+      <h1>{name} 薪資排行</h1>
+      {
+        latestStat ? (
+          <p class="intro">
+            該產業共 <b>{formatInt(latestStat.count)}</b> 家上市櫃公司，民國 {latestKey} 年度「中位數的中位數」<b>{formatWanUnit(latestStat.medianOfMediansK)}</b>、平均數的平均數 <b>{formatWanUnit(latestStat.avgOfAvgK)}</b>。
+          </p>
+        ) : null
+      }
+    </header>
+
+    {
+      trendYears.length > 1 ? (
+        <section class="block">
+          <h2>產業歷年薪資趨勢</h2>
+          <TrendChart
+            years={trendYears}
+            series={[
+              { label: '中位數', values: medianOfMedians, variant: 'primary' },
+              { label: '平均', values: avgOfAvg, variant: 'secondary' },
+            ]}
+            ariaLabel={`${name} 歷年中位數的中位數與平均數的平均數趨勢（單位：萬元）`}
+          />
+          <p class="chart-note">「中位數的中位數」= 該產業每家公司中位數再取中位數，代表產業內典型公司的水準。</p>
+        </section>
+      ) : null
+    }
+
+    <section class="block">
+      <h2>公司薪資排行</h2>
+      <p class="table-lead">
+        依中位數由高至低排序，共 {formatInt(rows.length)} 家{
+          staleCount > 0 ? `（含 ${staleCount} 家未列入 ${META_LATEST} 年度，以最後有資料年度顯示）` : ''
+        }。點欄位標題可重新排序。
+      </p>
+      <IndustryTable rows={rows} latestYear={META_LATEST} ariaLabel={`${name} 公司薪資排行`} />
+    </section>
+
+    <section class="foot">
+      <Explainer compact />
+      <p class="source">
+        資料來源：<a href="https://mopsov.twse.com.tw/mops/web/t100sb15" target="_blank" rel="noopener"
+          >公開資訊觀測站 t100sb15</a
+        >。單位：萬元（新台幣）。
+      </p>
+    </section>
+  </article>
+</Base>
+
+<script>
+  import '../../scripts/table-enhance.ts';
+</script>
+
+<style>
+  .industry {
+    margin: 20px 0;
+  }
+  .crumb {
+    margin: 0 0 4px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+  .i-head h1 {
+    margin: 0 0 8px;
+    font-size: clamp(1.4rem, 1.1rem + 1.4vw, 1.9rem);
+  }
+  .intro {
+    margin: 0;
+    max-width: 62ch;
+    color: var(--text-secondary);
+  }
+  .intro b {
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .block {
+    margin-top: 28px;
+  }
+  .block h2 {
+    margin: 0 0 12px;
+    font-size: 1.05rem;
+  }
+  .chart-note,
+  .table-lead {
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+  }
+  .chart-note {
+    margin: 8px 2px 0;
+  }
+  .table-lead {
+    margin: 0 2px 10px;
+  }
+  .foot {
+    margin-top: 34px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .source {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    margin: 0;
+  }
+</style>

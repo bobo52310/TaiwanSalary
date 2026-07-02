@@ -16,6 +16,11 @@ const pctFmt = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 2,
 });
 
+const yiFmt = new Intl.NumberFormat('en-US', {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+
 /** 仟元 → 萬, one decimal, thousands-grouped. 4072 → "407.2". null → "—". */
 export function formatWan(k: number | null | undefined): string {
   if (k === null || k === undefined || !Number.isFinite(k)) return NULL_DISPLAY;
@@ -49,6 +54,17 @@ export function formatEmployees(n: number | null | undefined): string {
 /** Plain integer with thousands separators (row counts, company totals). */
 export function formatInt(n: number): string {
   return intFmt.format(n);
+}
+
+/**
+ * Total-payroll amount (仟元) → a human 億 / 萬 string. 1 億元 = 10^5 仟元, so a
+ * payroll of ≥ 1 億 reads as "3,053.6億"; smaller sums fall back to the 萬 unit.
+ * null → "—". Used for a company's 薪資總額, where the raw figure is unwieldy.
+ */
+export function formatPayroll(k: number | null | undefined): string {
+  if (k === null || k === undefined || !Number.isFinite(k)) return NULL_DISPLAY;
+  if (Math.abs(k) >= 100000) return `${yiFmt.format(k / 100000)}億`;
+  return formatWanUnit(k);
 }
 
 /** ROC (民國) year → Common Era year. Matches normalize.ts rocToCe (roc + 1911). */

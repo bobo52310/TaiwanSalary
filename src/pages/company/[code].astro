@@ -1,0 +1,636 @@
+---
+import Base from '../../layouts/Base.astro';
+import Explainer from '../../components/Explainer.astro';
+import TrendChart from '../../components/TrendChart.astro';
+import YoYBars from '../../components/YoYBars.astro';
+import GenderCard from '../../components/GenderCard.astro';
+import PercentileBar from '../../components/PercentileBar.astro';
+import {
+  formatWan,
+  formatWanUnit,
+  formatPct,
+  formatEmployees,
+  formatPayroll,
+  rocToCe,
+} from '../../lib/format';
+import type { CompaniesFile, CompanyRecord, IndustriesFile } from '../../lib/types';
+import companiesData from '../../data/companies.json';
+import industriesData from '../../data/industries.json';
+
+const companiesFile = companiesData as unknown as CompaniesFile;
+const industries = industriesData as unknown as IndustriesFile;
+const allCompanies = companiesFile.companies;
+const META_LATEST = companiesFile.meta.latestYear;
+
+export function getStaticPaths() {
+  const file = companiesData as unknown as CompaniesFile;
+  return Object.values(file.companies).map((c) => ({
+    params: { code: c.code },
+    props: { company: c },
+  }));
+}
+
+interface PageProps {
+  company: CompanyRecord;
+}
+const { company } = Astro.props as PageProps;
+
+// The company's own year range — may end before META_LATEST if it dropped out.
+const yearKeys = Object.keys(company.years)
+  .map(Number)
+  .sort((a, b) => a - b);
+const availLatest = yearKeys[yearKeys.length - 1]!;
+const cur = company.years[String(availLatest)]!;
+const isDelisted = !company.years[String(META_LATEST)];
+const marketLabel = company.market === 'sii' ? '上市' : '上櫃';
+const ceYear = rocToCe(availLatest);
+
+const chgCls = (p: number | null): string =>
+  p == null ? '' : p > 0 ? 'up' : p < 0 ? 'down' : '';
+
+// A year-over-year change is only meaningful with a real prior-year value. The
+// pipeline stores prevK = 0 for a company's first appearance in a later year (and
+// null for the dataset's earliest year); a salary is never truly 0, so a null/0
+// prevK means "no prior year" and the paired change is a synthetic 0, not a raise.
+const realChange = (change: number | null, prevK: number | null | undefined): number | null =>
+  prevK != null && prevK !== 0 ? change : null;
+
+// Stat cards (latest available year).
+const curMedianChange = realChange(cur.medianChangePct, cur.medianPrevK);
+const medianChangeCls = chgCls(curMedianChange);
+const peerAvgK = cur.peerAvgK;
+const peerDiffPct =
+  peerAvgK != null && peerAvgK !== 0 && cur.avgK != null
+    ? ((cur.avgK - peerAvgK) / peerAvgK) * 100
+    : null;
+const peerDiffCls = chgCls(peerDiffPct);
+
+// Chart inputs (仟元; components convert to 萬).
+const medianValues = yearKeys.map((y) => company.years[String(y)]!.medianK);
+const avgValues = yearKeys.map((y) => company.years[String(y)]!.avgK);
+const yoyValues = yearKeys.map((y) => {
+  const d = company.years[String(y)]!;
+  return realChange(d.medianChangePct, d.medianPrevK);
+});
+const hasYoY = yoyValues.some((v) => v != null);
+
+const hasGender =
+  cur.maleAvgK != null ||
+  cur.femaleAvgK != null ||
+  cur.maleMedianK != null ||
+  cur.femaleMedianK != null;
+
+// History table rows, newest year first, each tagged with its ROC year and the
+// meaningful (real-prior) year-over-year changes.
+const historyRows = [...yearKeys].reverse().map((y) => {
+  const d = company.years[String(y)]!;
+  return {
+    y,
+    d,
+    mChg: realChange(d.medianChangePct, d.medianPrevK),
+    aChg: realChange(d.avgChangePct, d.avgPrevK),
+  };
+});
+
+// Filing text: the newest year that carries a note or improvement statement.
+const noteYear = [...yearKeys].reverse().find((y) => {
+  const d = company.years[String(y)]!;
+  return d.note || d.improvement;
+});
+const noteData = noteYear != null ? company.years[String(noteYear)]! : null;
+const flagTexts: string[] = [];
+if (noteData?.flagLowPay) flagTexts.push('平均數未達 50 萬元');
+if (noteData?.flagEpsHighPayLow) flagTexts.push('EPS 較同業佳惟薪資低於同業');
+if (noteData?.flagEpsUpPayDown) flagTexts.push('EPS 成長惟薪資減少');
+
+// Same-industry median Top 5 (exclude self), falling back to the industry's
+// newest year if it has no latest-year entry.
+const indYears = industries[company.industry] ?? {};
+const indKeys = Object.keys(indYears)
+  .map(Number)
+  .sort((a, b) => b - a);
+const topKey = indYears[String(META_LATEST)] ? META_LATEST : indKeys[0];
+const topCodes = topKey != null ? (indYears[String(topKey)]?.topCodes ?? []) : [];
+const topPeers = topCodes
+  .filter((c) => c !== company.code)
+  .slice(0, 5)
+  .map((c) => ({ code: c, name: allCompanies[c]?.name ?? c }));
+
+const industryHref = `/industry/${encodeURIComponent(company.industry)}/`;
+
+// SEO.
+const titleParts = [`${company.name} (${company.code}) 員工薪資`];
+if (cur.avgK != null || cur.medianK != null) {
+  const bits: string[] = [];
+  if (cur.avgK != null) bits.push(`平均年薪 ${formatWan(cur.avgK)}萬`);
+  if (cur.medianK != null) bits.push(`中位數 ${formatWan(cur.medianK)}萬`);
+  titleParts.push(`${bits.join('・')}（${ceYear}）`);
+}
+const title = titleParts.join('｜');
+
+const descBits: string[] = [
+  `${company.name}（${company.code}）屬${company.industry}`,
+  `民國 ${availLatest} 年度非主管全時員工薪資中位數 ${formatWanUnit(cur.medianK)}、平均 ${formatWanUnit(cur.avgK)}`,
+];
+if (cur.medianChangePct != null) descBits.push(`中位數年增 ${formatPct(cur.medianChangePct)}`);
+if (cur.employees != null) descBits.push(`員工 ${formatEmployees(cur.employees)} 人`);
+descBits.push(`收錄 ${yearKeys[0]}–${availLatest} 年度歷年趨勢`);
+const description = `${descBits.join('，')}。`;
+---
+
+<Base title={title} description={description} canonical={`/company/${company.code}/`}>
+  <article class="company">
+    <header class="c-head">
+      <p class="crumb"><a href="/">薪資查詢</a> / <a href={industryHref}>{company.industry}</a></p>
+      <h1>{company.name} <span class="code">({company.code})</span></h1>
+      <div class="badges">
+        <span class="badge badge-mkt">{marketLabel}</span>
+        <a class="badge badge-ind" href={industryHref}>{company.industry}</a>
+        {
+          isDelisted ? (
+            <span class="badge badge-warn">未納入 {META_LATEST} 年度統計（可能已下市／下櫃）</span>
+          ) : null
+        }
+      </div>
+      <p class="subline">
+        資料至民國 {availLatest} 年度（{ceYear}）・員工 {formatEmployees(cur.employees)} 人・薪資總額 {formatPayroll(cur.totalPayrollK)}
+      </p>
+    </header>
+
+    <p class="stat-year">民國 {availLatest} 年度薪資</p>
+    <div class="stats">
+      <div class="stat stat-hero">
+        <span class="stat-label">中位數</span>
+        <span class="stat-value">{formatWan(cur.medianK)}<span class="unit">萬</span></span>
+        <span class="stat-sub">一半員工年薪低於此數</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">平均數</span>
+        <span class="stat-value">{formatWan(cur.avgK)}<span class="unit">萬</span></span>
+        <span class="stat-sub">易被少數高薪拉高</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">中位數年增</span>
+        <span class:list={['stat-value', medianChangeCls]}>{formatPct(curMedianChange)}</span>
+        <span class="stat-sub">較前一年度</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">vs 同業平均</span>
+        <span class:list={['stat-value', peerDiffCls]}>
+          {peerDiffPct != null ? formatPct(peerDiffPct) : '—'}
+        </span>
+        <span class="stat-sub">同業平均 {formatWanUnit(peerAvgK)}</span>
+      </div>
+    </div>
+
+    <section class="block">
+      <h2>歷年薪資趨勢</h2>
+      <TrendChart
+        years={yearKeys}
+        series={[
+          { label: '中位數', values: medianValues, variant: 'primary' },
+          { label: '平均', values: avgValues, variant: 'secondary' },
+        ]}
+        ariaLabel={`${company.name} 歷年平均數與中位數薪資趨勢（單位：萬元）`}
+      />
+    </section>
+
+    {
+      hasYoY ? (
+        <section class="block">
+          <h2>歷年調薪幅度（中位數年增）</h2>
+          <YoYBars years={yearKeys} values={yoyValues} />
+        </section>
+      ) : null
+    }
+
+    {
+      hasGender || cur.medianPctlMarket != null || cur.medianPctlIndustry != null ? (
+        <div class="dual">
+          {hasGender ? (
+            <GenderCard
+              year={availLatest}
+              maleAvgK={cur.maleAvgK ?? null}
+              femaleAvgK={cur.femaleAvgK ?? null}
+              maleMedianK={cur.maleMedianK ?? null}
+              femaleMedianK={cur.femaleMedianK ?? null}
+            />
+          ) : null}
+          <PercentileBar
+            marketPctl={cur.medianPctlMarket}
+            industryPctl={cur.medianPctlIndustry}
+            industry={company.industry}
+          />
+        </div>
+      ) : null
+    }
+
+    <section class="block">
+      <h2>歷年薪資明細</h2>
+      <div class="hist-table">
+        <table data-salary-table aria-label={`${company.name} 歷年非主管全時員工薪資明細`}>
+          <thead>
+            <tr>
+              <th data-key="year" data-type="num" tabindex="0" aria-sort="none" class="c-num">
+                <span class="th-label">年度</span><span class="arrow" aria-hidden="true"></span>
+              </th>
+              <th data-key="employees" data-type="num" tabindex="0" aria-sort="none" class="c-num">
+                <span class="th-label">員工數</span><span class="arrow" aria-hidden="true"></span>
+              </th>
+              <th data-key="medianK" data-type="num" tabindex="0" aria-sort="none" class="c-num">
+                <span class="th-label">中位數<span class="th-hint">（萬）</span></span><span class="arrow" aria-hidden="true"></span>
+              </th>
+              <th data-key="medianChange" data-type="num" tabindex="0" aria-sort="none" class="c-num">
+                <span class="th-label">中位數年增</span><span class="arrow" aria-hidden="true"></span>
+              </th>
+              <th data-key="avgK" data-type="num" tabindex="0" aria-sort="none" class="c-num">
+                <span class="th-label">平均數<span class="th-hint">（萬）</span></span><span class="arrow" aria-hidden="true"></span>
+              </th>
+              <th data-key="avgChange" data-type="num" tabindex="0" aria-sort="none" class="c-num">
+                <span class="th-label">平均數年增</span><span class="arrow" aria-hidden="true"></span>
+              </th>
+              <th data-key="eps" data-type="num" tabindex="0" aria-sort="none" class="c-num">
+                <span class="th-label">EPS</span><span class="arrow" aria-hidden="true"></span>
+              </th>
+              <th data-key="peerAvg" data-type="num" tabindex="0" aria-sort="none" class="c-num">
+                <span class="th-label">同業平均<span class="th-hint">（萬）</span></span><span class="arrow" aria-hidden="true"></span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              historyRows.map(({ y, d, mChg, aChg }) => (
+                <tr>
+                  <td class="c-num c-yr" data-s={y}>{y}</td>
+                  <td class="c-num" data-s={d.employees ?? undefined}>{formatEmployees(d.employees)}</td>
+                  <td class="c-num" data-s={d.medianK ?? undefined}>{formatWan(d.medianK)}</td>
+                  <td class:list={['c-num', 'c-chg', chgCls(mChg)]} data-s={mChg ?? undefined}>
+                    {formatPct(mChg)}
+                  </td>
+                  <td class="c-num" data-s={d.avgK ?? undefined}>{formatWan(d.avgK)}</td>
+                  <td class:list={['c-num', 'c-chg', chgCls(aChg)]} data-s={aChg ?? undefined}>
+                    {formatPct(aChg)}
+                  </td>
+                  <td class="c-num" data-s={d.eps ?? undefined}>{d.eps ?? '—'}</td>
+                  <td class="c-num" data-s={d.peerAvgK ?? undefined}>{formatWan(d.peerAvgK)}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="hist-note">單位：萬元（新台幣）。年增 = 較前一年度中位數／平均數變動。EPS 為當年度每股盈餘（元）。</p>
+    </section>
+
+    {
+      noteData ? (
+        <section class="filing">
+          <h2>公司申報說明（{noteYear} 年度）</h2>
+          {flagTexts.length > 0 ? (
+            <div class="flags">
+              {flagTexts.map((t) => (
+                <span class="flag-tag">{t}</span>
+              ))}
+            </div>
+          ) : null}
+          {noteData.note ? (
+            <blockquote class="filing-note">
+              <span class="filing-kind">差異說明</span>
+              <p>{noteData.note}</p>
+            </blockquote>
+          ) : null}
+          {noteData.improvement ? (
+            <blockquote class="filing-note">
+              <span class="filing-kind">具體改善措施</span>
+              <p>{noteData.improvement}</p>
+            </blockquote>
+          ) : null}
+        </section>
+      ) : null
+    }
+
+    <section class="foot">
+      <Explainer compact />
+      {
+        topPeers.length > 0 ? (
+          <div class="peers">
+            <h2>同產業（{company.industry}）中位數 Top 5</h2>
+            <ul>
+              {topPeers.map((p) => (
+                <li>
+                  <a href={`/company/${p.code}/`}>{p.name}</a>
+                  <span class="peers-code">{p.code}</span>
+                </li>
+              ))}
+            </ul>
+            <p class="peers-more">
+              <a href={industryHref}>看完整 {company.industry} 薪資排行 →</a>
+            </p>
+          </div>
+        ) : null
+      }
+      <p class="source">
+        資料來源：<a href="https://mopsov.twse.com.tw/mops/web/t100sb15" target="_blank" rel="noopener"
+          >公開資訊觀測站 t100sb15</a
+        >。此為「非擔任主管職務之全時員工」薪資，單位：萬元（新台幣）。
+      </p>
+    </section>
+  </article>
+</Base>
+
+<script>
+  import '../../scripts/table-enhance.ts';
+</script>
+
+<style>
+  .company {
+    margin: 20px 0;
+  }
+  .crumb {
+    margin: 0 0 4px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+  .c-head h1 {
+    margin: 0;
+    font-size: clamp(1.4rem, 1.1rem + 1.4vw, 1.9rem);
+  }
+  .c-head h1 .code {
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 0.7em;
+  }
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 10px 0 6px;
+  }
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    line-height: 1.5;
+  }
+  .badge-mkt {
+    background: var(--seg-fill);
+    color: #fff;
+    font-weight: 600;
+  }
+  .badge-ind {
+    background: var(--surface-alt);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+  }
+  .badge-ind:hover {
+    text-decoration: none;
+    color: var(--link);
+  }
+  .badge-warn {
+    background: color-mix(in srgb, var(--neg) 12%, transparent);
+    color: var(--neg);
+    border: 1px solid color-mix(in srgb, var(--neg) 35%, transparent);
+    font-weight: 550;
+  }
+  .subline {
+    margin: 6px 0 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat-year {
+    margin: 22px 0 8px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
+    gap: 12px;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .stat-label {
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+  }
+  .stat-value {
+    color: var(--text);
+    font-size: 1.7rem;
+    font-weight: 680;
+    line-height: 1.05;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-hero .stat-value {
+    font-size: 2.3rem;
+    color: var(--accent);
+  }
+  .stat-value .unit {
+    font-size: 0.55em;
+    font-weight: 600;
+    margin-inline-start: 2px;
+    color: var(--text-secondary);
+  }
+  .stat-value.up {
+    color: var(--pos);
+  }
+  .stat-value.down {
+    color: var(--neg);
+  }
+  .stat-sub {
+    color: var(--text-muted);
+    font-size: 0.76rem;
+  }
+
+  .block {
+    margin-top: 30px;
+  }
+  .block h2,
+  .filing h2,
+  .peers h2 {
+    margin: 0 0 12px;
+    font-size: 1.05rem;
+  }
+
+  .dual {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+    margin-top: 24px;
+  }
+
+  /* History table — scoped; only ~7 rows per page. */
+  .hist-table {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+  .hist-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  .hist-table th,
+  .hist-table td {
+    padding: 7px 12px;
+    white-space: nowrap;
+    text-align: right;
+  }
+  .hist-table thead th {
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.82rem;
+    border-bottom: 1.5px solid var(--border-strong);
+    cursor: pointer;
+    user-select: none;
+  }
+  .hist-table thead th:hover {
+    color: var(--text);
+  }
+  .hist-table .th-hint {
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .hist-table .arrow {
+    display: inline-block;
+    width: 1em;
+    margin-inline-start: 2px;
+    color: var(--text-muted);
+    font-size: 0.7em;
+  }
+  .hist-table th[aria-sort='none'] .arrow::after {
+    content: '⇅';
+    opacity: 0;
+  }
+  .hist-table th:hover .arrow::after {
+    opacity: 0.55;
+  }
+  .hist-table th[aria-sort='ascending'] .arrow::after {
+    content: '▲';
+    opacity: 1;
+    color: var(--accent);
+  }
+  .hist-table th[aria-sort='descending'] .arrow::after {
+    content: '▼';
+    opacity: 1;
+    color: var(--accent);
+  }
+  .hist-table .c-num {
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+  }
+  .hist-table .c-yr {
+    font-weight: 600;
+  }
+  .hist-table tbody tr {
+    border-top: 1px solid var(--border);
+  }
+  .hist-table tbody tr:hover {
+    background: var(--row-hover);
+  }
+  .hist-table td.c-chg.up {
+    color: var(--pos);
+  }
+  .hist-table td.c-chg.down {
+    color: var(--neg);
+  }
+  .hist-note {
+    margin: 8px 2px 0;
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+  }
+
+  .filing {
+    margin-top: 30px;
+  }
+  .flags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .flag-tag {
+    background: color-mix(in srgb, var(--neg) 10%, transparent);
+    color: var(--neg);
+    border: 1px solid color-mix(in srgb, var(--neg) 30%, transparent);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 0.78rem;
+  }
+  .filing-note {
+    margin: 0 0 10px;
+    padding: 12px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-inline-start: 3px solid var(--border-strong);
+    border-radius: var(--radius);
+  }
+  .filing-kind {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.76rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .filing-note p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.65;
+  }
+
+  .foot {
+    margin-top: 34px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .peers ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+  }
+  .peers li {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .peers-code {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .peers-more {
+    margin: 12px 0 0;
+    font-size: 0.9rem;
+  }
+  .source {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  @media (max-width: 720px) {
+    .stats {
+      grid-template-columns: 1fr 1fr;
+    }
+    .stat-hero {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

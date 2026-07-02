@@ -1,0 +1,220 @@
+---
+// Company table for an industry page. Same interaction contract as the homepage
+// SalaryTable (data-salary-table + table-enhance gives click-to-sort), but each
+// row carries the year its figures come from, so companies that dropped out
+// before the latest year show honestly rather than pretending to be current.
+// Global styles namespaced under .ind-table (like SalaryTable) to avoid stamping
+// data-astro-cid on every cell across ~35 industry pages.
+import { formatWan, formatPct, formatEmployees } from '../lib/format';
+import type { Market, IndustryTableRow } from '../lib/types';
+
+interface Props {
+  rows: IndustryTableRow[];
+  /** Site latest year, for the stale marker copy. */
+  latestYear: number;
+  ariaLabel: string;
+}
+
+const { rows, latestYear, ariaLabel } = Astro.props;
+
+// key='median' makes table-enhance adopt median-desc as its default sort on load,
+// matching the server-rendered order below.
+const columns = [
+  { key: 'code', label: '代號', type: 'str', cls: 'c-code' },
+  { key: 'name', label: '名稱', type: 'str', cls: 'c-name' },
+  { key: 'median', label: '中位數', hint: '萬', type: 'num', cls: 'c-num' },
+  { key: 'avg', label: '平均數', hint: '萬', type: 'num', cls: 'c-num' },
+  { key: 'change', label: '中位數年增', type: 'num', cls: 'c-num c-chg' },
+  { key: 'employees', label: '員工數', type: 'num', cls: 'c-num c-emp' },
+  { key: 'market', label: '市場', type: 'str', cls: 'c-mkt' },
+  { key: 'year', label: '資料年度', type: 'num', cls: 'c-num c-year' },
+] as const;
+
+const marketLabel = (m: Market): string => (m === 'sii' ? '上市' : '上櫃');
+const changeClass = (p: number | null): string =>
+  p === null ? '' : p > 0 ? 'up' : p < 0 ? 'down' : '';
+---
+
+<div class="ind-table">
+  <table data-salary-table aria-label={ariaLabel}>
+    <thead>
+      <tr>
+        {
+          columns.map((c) => (
+            <th
+              data-key={c.key}
+              data-type={c.type}
+              class={c.cls}
+              tabindex="0"
+              aria-sort={c.key === 'median' ? 'descending' : 'none'}>
+              <span class="th-label">
+                {c.label}
+                {'hint' in c && c.hint ? <span class="th-hint">（{c.hint}）</span> : null}
+              </span>
+              <span class="arrow" aria-hidden="true" />
+            </th>
+          ))
+        }
+      </tr>
+    </thead>
+    <tbody>
+      {
+        rows.map((r) => (
+          <tr data-c={r.code} data-n={r.name} data-m={r.market}>
+            <td class="c-code">{r.code}</td>
+            <td class="c-name">
+              <a href={`/company/${r.code}/`}>{r.name}</a>
+              {r.stale ? <span class="c-stale">未列入 {latestYear}</span> : null}
+            </td>
+            <td class="c-num" data-s={r.medianK ?? undefined}>
+              {formatWan(r.medianK)}
+            </td>
+            <td class="c-num" data-s={r.avgK ?? undefined}>
+              {formatWan(r.avgK)}
+            </td>
+            <td
+              class:list={['c-num', 'c-chg', changeClass(r.medianChangePct)]}
+              data-s={r.medianChangePct ?? undefined}>
+              {formatPct(r.medianChangePct)}
+            </td>
+            <td class="c-num c-emp" data-s={r.employees ?? undefined}>
+              {formatEmployees(r.employees)}
+            </td>
+            <td class="c-mkt">{marketLabel(r.market)}</td>
+            <td class:list={['c-num', 'c-year', r.stale ? 'is-stale' : '']} data-s={r.year}>
+              {r.year}
+            </td>
+          </tr>
+        ))
+      }
+      <tr data-empty hidden>
+        <td colspan={columns.length}>找不到符合條件的公司</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<style is:global>
+  .ind-table {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+  .ind-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  .ind-table th,
+  .ind-table td {
+    text-align: left;
+    padding: 7px 12px;
+    white-space: nowrap;
+  }
+  .ind-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--surface);
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.82rem;
+    border-bottom: 1.5px solid var(--border-strong);
+    cursor: pointer;
+    user-select: none;
+  }
+  .ind-table thead th:hover {
+    color: var(--text);
+  }
+  .ind-table .th-hint {
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .ind-table .arrow {
+    display: inline-block;
+    width: 1em;
+    margin-inline-start: 2px;
+    color: var(--text-muted);
+    font-size: 0.7em;
+  }
+  .ind-table th[aria-sort='none'] .arrow::after {
+    content: '⇅';
+    opacity: 0;
+  }
+  .ind-table th:hover .arrow::after {
+    opacity: 0.55;
+  }
+  .ind-table th[aria-sort='ascending'] .arrow,
+  .ind-table th[aria-sort='descending'] .arrow {
+    color: var(--accent);
+  }
+  .ind-table th[aria-sort='ascending'] .arrow::after {
+    content: '▲';
+    opacity: 1;
+  }
+  .ind-table th[aria-sort='descending'] .arrow::after {
+    content: '▼';
+    opacity: 1;
+  }
+  .ind-table tbody tr {
+    border-top: 1px solid var(--border);
+  }
+  .ind-table tbody tr:hover {
+    background: var(--row-hover);
+  }
+  .ind-table tr[hidden] {
+    display: none;
+  }
+  .ind-table .c-code,
+  .ind-table .c-num {
+    font-variant-numeric: tabular-nums;
+  }
+  .ind-table .c-num {
+    text-align: right;
+  }
+  .ind-table td.c-num {
+    color: var(--text);
+  }
+  .ind-table .c-name a {
+    font-weight: 550;
+  }
+  .ind-table .c-stale {
+    margin-inline-start: 6px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--surface-alt);
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    white-space: nowrap;
+  }
+  .ind-table td.c-year.is-stale {
+    color: var(--text-muted);
+  }
+  .ind-table .c-mkt {
+    color: var(--text-secondary);
+  }
+  .ind-table td.c-chg.up {
+    color: var(--pos);
+  }
+  .ind-table td.c-chg.down {
+    color: var(--neg);
+  }
+  .ind-table [data-empty] td {
+    padding: 28px 12px;
+    text-align: center;
+    color: var(--text-secondary);
+  }
+
+  @media (max-width: 640px) {
+    .ind-table .c-chg,
+    .ind-table .c-emp,
+    .ind-table .c-mkt {
+      display: none;
+    }
+    .ind-table th,
+    .ind-table td {
+      padding: 7px 9px;
+    }
+  }
+</style>

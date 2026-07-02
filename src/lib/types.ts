@@ -133,3 +133,20 @@ export interface SalaryTableRow {
   medianChangePct: number | null;
   employees: number | null;
 }
+
+/**
+ * One row in an industry page's company table. Built from a company's newest
+ * available year, so `year`/`stale` disclose companies that dropped out before
+ * the site's latest year rather than showing stale figures as if current.
+ */
+export interface IndustryTableRow {
+  code: string;
+  name: string;
+  market: Market;
+  medianK: number | null;
+  avgK: number | null;
+  medianChangePct: number | null;
+  employees: number | null;
+  year: number;
+  stale: boolean;
+}

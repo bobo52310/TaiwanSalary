@@ -1,0 +1,100 @@
+---
+// Two horizontal position bars: where this company's median sits within the whole
+// market, and within its own industry. Plain div bars (no SVG needed) — the fill
+// width IS the percentile. Each bar guards its own null independently.
+
+interface Props {
+  /** 0–100: share of same-year same-market companies with a lower median. */
+  marketPctl: number | null;
+  /** 0–100: share of same-year same-industry companies with a lower median. */
+  industryPctl: number | null;
+  industry: string;
+}
+
+const { marketPctl, industryPctl, industry } = Astro.props;
+
+interface Bar {
+  scope: string;
+  pctl: number;
+  text: string;
+}
+const bars: Bar[] = [
+  marketPctl != null
+    ? { scope: '全市場', pctl: marketPctl, text: `中位數高於全市場 ${marketPctl}% 的公司` }
+    : null,
+  industryPctl != null
+    ? { scope: `同業（${industry}）`, pctl: industryPctl, text: `中位數高於同業 ${industryPctl}% 的公司` }
+    : null,
+].filter((b): b is Bar => b != null);
+---
+
+{
+  bars.length > 0 ? (
+    <section class="pctl">
+      <h2>薪資位置</h2>
+      {bars.map((b) => (
+        <div class="pctl-row">
+          <div class="pctl-head">
+            <span class="pctl-scope">{b.scope}</span>
+            <span class="pctl-num">{b.pctl}%</span>
+          </div>
+          <div
+            class="pctl-track"
+            role="img"
+            aria-label={`${b.scope}百分位 ${b.pctl}%`}>
+            <div class="pctl-fill" style={`width:${b.pctl}%`} />
+          </div>
+          <p class="pctl-text">{b.text}</p>
+        </div>
+      ))}
+    </section>
+  ) : null
+}
+
+<style>
+  .pctl {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+  }
+  .pctl h2 {
+    margin: 0 0 12px;
+    font-size: 1rem;
+  }
+  .pctl-row + .pctl-row {
+    margin-top: 14px;
+  }
+  .pctl-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 5px;
+  }
+  .pctl-scope {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+  }
+  .pctl-num {
+    color: var(--text);
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+  }
+  .pctl-track {
+    height: 10px;
+    background: var(--surface-alt);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .pctl-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 999px;
+  }
+  .pctl-text {
+    margin: 5px 0 0;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+  }
+</style>

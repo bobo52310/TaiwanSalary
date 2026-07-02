@@ -1,0 +1,241 @@
+---
+import Base from '../../layouts/Base.astro';
+import Explainer from '../../components/Explainer.astro';
+import { formatWan, formatInt, rocToCe } from '../../lib/format';
+import type { CompaniesFile, IndustriesFile } from '../../lib/types';
+import companiesData from '../../data/companies.json';
+import industriesData from '../../data/industries.json';
+
+const companiesFile = companiesData as unknown as CompaniesFile;
+const industries = industriesData as unknown as IndustriesFile;
+const META_LATEST = companiesFile.meta.latestYear;
+
+interface Row {
+  name: string;
+  count: number;
+  medianOfMediansK: number | null;
+  avgOfAvgK: number | null;
+  year: number;
+}
+
+const rows: Row[] = Object.keys(industries)
+  .map((name) => {
+    const years = industries[name]!;
+    const key = years[String(META_LATEST)]
+      ? META_LATEST
+      : Object.keys(years)
+          .map(Number)
+          .sort((a, b) => b - a)[0]!;
+    const s = years[String(key)]!;
+    return {
+      name,
+      count: s.count,
+      medianOfMediansK: s.medianOfMediansK,
+      avgOfAvgK: s.avgOfAvgK,
+      year: key,
+    };
+  })
+  .sort((a, b) => {
+    if (a.medianOfMediansK == null) return b.medianOfMediansK == null ? 0 : 1;
+    if (b.medianOfMediansK == null) return -1;
+    return b.medianOfMediansK - a.medianOfMediansK;
+  });
+
+const industryCount = rows.length;
+const ceYear = rocToCe(META_LATEST);
+
+const columns = [
+  { key: 'name', label: '產業', type: 'str', cls: 'c-name' },
+  { key: 'count', label: '家數', type: 'num', cls: 'c-num' },
+  { key: 'median', label: '中位數的中位數', hint: '萬', type: 'num', cls: 'c-num' },
+  { key: 'avg', label: '平均數的平均數', hint: '萬', type: 'num', cls: 'c-num' },
+] as const;
+
+const title = `產業薪資總覽｜${industryCount} 種產業中位數比較（${ceYear}）`;
+const description = `台灣上市櫃 ${industryCount} 種產業非主管全時員工薪資比較，民國 ${META_LATEST} 年度各產業「中位數的中位數」與「平均數的平均數」排行。`;
+---
+
+<Base title={title} description={description} canonical="/industry/">
+  <article class="ind-index">
+    <header>
+      <p class="crumb"><a href="/">薪資查詢</a> / 產業</p>
+      <h1>產業薪資總覽</h1>
+      <p class="intro">
+        民國 {META_LATEST} 年度（{ceYear}），共 <b>{industryCount}</b> 種產業。以「中位數的中位數」代表產業內典型公司的員工年薪水準，由高至低排序。點欄位標題可重新排序。
+      </p>
+    </header>
+
+    <div class="idx-table">
+      <table data-salary-table aria-label={`民國 ${META_LATEST} 年度各產業薪資比較`}>
+        <thead>
+          <tr>
+            {
+              columns.map((c) => (
+                <th
+                  data-key={c.key}
+                  data-type={c.type}
+                  class={c.cls}
+                  tabindex="0"
+                  aria-sort={c.key === 'median' ? 'descending' : 'none'}>
+                  <span class="th-label">
+                    {c.label}
+                    {'hint' in c && c.hint ? <span class="th-hint">（{c.hint}）</span> : null}
+                  </span>
+                  <span class="arrow" aria-hidden="true" />
+                </th>
+              ))
+            }
+          </tr>
+        </thead>
+        <tbody>
+          {
+            rows.map((r) => (
+              <tr data-n={r.name}>
+                <td class="c-name">
+                  <a href={`/industry/${encodeURIComponent(r.name)}/`}>{r.name}</a>
+                </td>
+                <td class="c-num" data-s={r.count}>
+                  {formatInt(r.count)}
+                </td>
+                <td class="c-num c-strong" data-s={r.medianOfMediansK ?? undefined}>
+                  {formatWan(r.medianOfMediansK)}
+                </td>
+                <td class="c-num" data-s={r.avgOfAvgK ?? undefined}>
+                  {formatWan(r.avgOfAvgK)}
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="foot">
+      <Explainer compact />
+      <p class="source">
+        單位：萬元（新台幣）。「中位數的中位數」為該產業每家公司中位數再取中位數，是公司層級統計，非員工層級。資料來源：<a
+          href="https://mopsov.twse.com.tw/mops/web/t100sb15"
+          target="_blank"
+          rel="noopener">公開資訊觀測站 t100sb15</a
+        >。
+      </p>
+    </div>
+  </article>
+</Base>
+
+<script>
+  import '../../scripts/table-enhance.ts';
+</script>
+
+<style>
+  .ind-index {
+    margin: 20px 0;
+  }
+  .crumb {
+    margin: 0 0 4px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+  .ind-index h1 {
+    margin: 0 0 8px;
+    font-size: clamp(1.4rem, 1.1rem + 1.4vw, 1.9rem);
+  }
+  .intro {
+    margin: 0 0 18px;
+    max-width: 64ch;
+    color: var(--text-secondary);
+  }
+  .intro b {
+    color: var(--text);
+  }
+
+  .idx-table {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+  .idx-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+  }
+  .idx-table th,
+  .idx-table td {
+    text-align: right;
+    padding: 8px 14px;
+    white-space: nowrap;
+  }
+  .idx-table th.c-name,
+  .idx-table td.c-name {
+    text-align: left;
+  }
+  .idx-table thead th {
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.82rem;
+    border-bottom: 1.5px solid var(--border-strong);
+    cursor: pointer;
+    user-select: none;
+  }
+  .idx-table thead th:hover {
+    color: var(--text);
+  }
+  .idx-table .th-hint {
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .idx-table .arrow {
+    display: inline-block;
+    width: 1em;
+    margin-inline-start: 2px;
+    color: var(--text-muted);
+    font-size: 0.7em;
+  }
+  .idx-table th[aria-sort='none'] .arrow::after {
+    content: '⇅';
+    opacity: 0;
+  }
+  .idx-table th:hover .arrow::after {
+    opacity: 0.55;
+  }
+  .idx-table th[aria-sort='ascending'] .arrow::after {
+    content: '▲';
+    opacity: 1;
+    color: var(--accent);
+  }
+  .idx-table th[aria-sort='descending'] .arrow::after {
+    content: '▼';
+    opacity: 1;
+    color: var(--accent);
+  }
+  .idx-table .c-num {
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+  }
+  .idx-table .c-strong {
+    font-weight: 650;
+  }
+  .idx-table .c-name a {
+    font-weight: 550;
+  }
+  .idx-table tbody tr {
+    border-top: 1px solid var(--border);
+  }
+  .idx-table tbody tr:hover {
+    background: var(--row-hover);
+  }
+
+  .foot {
+    margin-top: 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .source {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    line-height: 1.6;
+    margin: 0;
+  }
+</style>

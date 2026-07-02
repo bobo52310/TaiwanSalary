@@ -132,6 +132,17 @@ function assembleCompanies(yearFiles: YearFile[]): Record<string, CompanyRecord>
         medianPctlMarket: null,
         medianPctlIndustry: null,
       };
+      // MOPS writes prevK = 0 (not null) for a company's first appearance and
+      // pairs it with a synthetic 0% change — a salary is never truly 0, so
+      // normalize both to null ("no prior year") before any derivation.
+      if (yearData.avgPrevK === 0) {
+        yearData.avgPrevK = null;
+        yearData.avgChangePct = null;
+      }
+      if (yearData.medianPrevK === 0) {
+        yearData.medianPrevK = null;
+        yearData.medianChangePct = null;
+      }
       // Backfill change-% for years whose source table lacks those columns.
       if (yearData.avgChangePct === null) {
         yearData.avgChangePct = deriveChangePct(yearData.avgK, yearData.avgPrevK);

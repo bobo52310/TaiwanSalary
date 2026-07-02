@@ -1,0 +1,247 @@
+---
+// Build-time SVG line chart, zero client JS. Plots one or two same-unit series
+// (仟元 → 萬) on a single shared y-axis. Native <title> elements give hover
+// tooltips without script. The primary series is the story (solid --accent,
+// filled dots); a secondary series is de-emphasised (dashed, muted). Reused by
+// the industry page as a single-series 中位數的中位數 trend.
+import { formatWan } from '../lib/format';
+
+interface TrendSeries {
+  label: string;
+  /** 仟元, aligned index-for-index with `years`; null = no data that year. */
+  values: (number | null)[];
+  variant: 'primary' | 'secondary';
+}
+
+interface Props {
+  /** ROC years, ascending. */
+  years: number[];
+  series: TrendSeries[];
+  height?: number;
+  ariaLabel?: string;
+}
+
+const { years, series, height = 240, ariaLabel } = Astro.props;
+
+const W = 760;
+const H = height;
+const PAD = { top: 20, right: 74, bottom: 30, left: 46 };
+const plotX0 = PAD.left;
+const plotX1 = W - PAD.right;
+const plotY0 = PAD.top; // top of plot = highest value
+const plotY1 = H - PAD.bottom; // baseline = lowest value
+const plotW = plotX1 - plotX0;
+const plotH = plotY1 - plotY0;
+
+const n = years.length;
+const xAt = (i: number): number =>
+  n <= 1 ? (plotX0 + plotX1) / 2 : plotX0 + (i / (n - 1)) * plotW;
+
+// Size the y-axis from every non-null value (converted 仟元 → 萬).
+const allWan: number[] = [];
+for (const s of series) for (const v of s.values) if (v != null) allWan.push(v / 10);
+
+function niceNum(range: number, round: boolean): number {
+  const r = range || 1;
+  const exp = Math.floor(Math.log10(r));
+  const f = r / 10 ** exp;
+  let nf: number;
+  if (round) nf = f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10;
+  else nf = f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10;
+  return nf * 10 ** exp;
+}
+
+let dataMin = allWan.length ? Math.min(...allWan) : 0;
+let dataMax = allWan.length ? Math.max(...allWan) : 1;
+if (dataMax === dataMin) {
+  // Single data point (or flat line): open a band so the dot isn't on an edge.
+  const bump = Math.max(1, Math.abs(dataMax) * 0.1);
+  dataMax += bump;
+  dataMin = Math.max(0, dataMin - bump);
+}
+const padAmt = (dataMax - dataMin) * 0.12;
+const lo = Math.max(0, dataMin - padAmt);
+const hi = dataMax + padAmt;
+const step = niceNum((hi - lo) / 3, true);
+const axisMin = Math.max(0, Math.floor(lo / step) * step);
+const axisMax = Math.ceil(hi / step) * step;
+const axisSpan = axisMax - axisMin || 1;
+const ticks: number[] = [];
+for (let v = axisMin; v <= axisMax + step * 0.5; v += step) {
+  ticks.push(Math.round(v * 100) / 100);
+}
+const fmtTick = (t: number): string => Math.round(t).toLocaleString('en-US');
+
+const yAt = (wan: number): number => plotY1 - ((wan - axisMin) / axisSpan) * plotH;
+
+interface Pt {
+  i: number;
+  x: number;
+  y: number;
+  year: number;
+  value: number;
+}
+
+const seriesGeo = series.map((s) => {
+  const pts: Pt[] = [];
+  s.values.forEach((v, i) => {
+    if (v == null) return;
+    pts.push({ i, x: xAt(i), y: yAt(v / 10), year: years[i]!, value: v });
+  });
+  // Break the line at gaps: a run is consecutive year indices.
+  const segs: Pt[][] = [];
+  let cur: Pt[] = [];
+  for (const p of pts) {
+    if (cur.length === 0 || p.i === cur[cur.length - 1]!.i + 1) cur.push(p);
+    else {
+      segs.push(cur);
+      cur = [p];
+    }
+  }
+  if (cur.length) segs.push(cur);
+  const last = pts.length ? pts[pts.length - 1]! : null;
+  return { label: s.label, variant: s.variant, pts, segs, last, single: pts.length === 1 };
+});
+
+// Series-name labels at each line's right end, nudged apart if they'd collide.
+const endLabels = seriesGeo
+  .filter((g) => g.last)
+  .map((g) => ({ label: g.label, variant: g.variant, x: g.last!.x, y: g.last!.y }))
+  .sort((a, b) => a.y - b.y);
+for (let k = 1; k < endLabels.length; k++) {
+  const prev = endLabels[k - 1]!;
+  const curr = endLabels[k]!;
+  if (curr.y - prev.y < 14) curr.y = prev.y + 14;
+}
+---
+
+<figure class="trend" role="group" aria-label={ariaLabel ?? '歷年薪資趨勢'}>
+  <svg
+    viewBox={`0 0 ${W} ${H}`}
+    width="100%"
+    height={H}
+    preserveAspectRatio="xMidYMid meet"
+    role="img"
+  >
+    {
+      ticks.map((t) => (
+        <g class="grid">
+          <line x1={plotX0} x2={plotX1} y1={yAt(t)} y2={yAt(t)} />
+          <text
+            x={plotX0 - 8}
+            y={yAt(t)}
+            class="ytick"
+            text-anchor="end"
+            dominant-baseline="middle">
+            {fmtTick(t)}
+          </text>
+        </g>
+      ))
+    }
+    <text x={plotX0 - 8} y={plotY0 - 7} class="yunit" text-anchor="end">萬</text>
+
+    {
+      years.map((y, i) => (
+        <text x={xAt(i)} y={plotY1 + 18} class="xtick" text-anchor="middle">
+          {y}
+        </text>
+      ))
+    }
+
+    {
+      seriesGeo.map((g) => (
+        <g class:list={['series', g.variant === 'primary' ? 'is-primary' : 'is-secondary']}>
+          {g.segs.map((seg) =>
+            seg.length > 1 ? (
+              <polyline class="line" fill="none" points={seg.map((p) => `${p.x},${p.y}`).join(' ')} />
+            ) : null,
+          )}
+          {g.pts.map((p) => (
+            <circle class="dot" cx={p.x} cy={p.y} r={g.variant === 'primary' ? 4 : 3.5}>
+              <title>{`${p.year} 年度：${g.label} ${formatWan(p.value)} 萬`}</title>
+            </circle>
+          ))}
+          {g.single && g.last ? (
+            <text class="single-val" x={g.last.x} y={g.last.y - 12} text-anchor="middle">
+              {formatWan(g.last.value)} 萬
+            </text>
+          ) : null}
+        </g>
+      ))
+    }
+
+    {
+      endLabels.map((e) => (
+        <text
+          class:list={['end-label', e.variant === 'primary' ? 'is-primary' : 'is-secondary']}
+          x={e.x + 8}
+          y={e.y}
+          dominant-baseline="middle">
+          {e.label}
+        </text>
+      ))
+    }
+  </svg>
+</figure>
+
+<style>
+  .trend {
+    margin: 0;
+  }
+  .trend svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+  .grid line {
+    stroke: var(--border);
+    stroke-width: 1;
+  }
+  .ytick,
+  .xtick {
+    fill: var(--text-muted);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+  }
+  .yunit {
+    fill: var(--text-muted);
+    font-size: 10px;
+  }
+  .line {
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+  .series.is-primary .line {
+    stroke: var(--accent);
+    stroke-width: 2.5;
+  }
+  .series.is-primary .dot {
+    fill: var(--accent);
+  }
+  .series.is-secondary .line {
+    stroke: var(--text-muted);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 3;
+  }
+  .series.is-secondary .dot {
+    fill: var(--surface);
+    stroke: var(--text-muted);
+    stroke-width: 1.5;
+  }
+  .end-label {
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .end-label.is-primary {
+    fill: var(--accent);
+  }
+  .end-label.is-secondary {
+    fill: var(--text-secondary);
+  }
+  .single-val {
+    fill: var(--text);
+    font-size: 12px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+</style>

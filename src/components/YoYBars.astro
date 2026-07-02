@@ -1,0 +1,119 @@
+---
+// Build-time SVG bar chart of 中位數年增% per year — the raise history. Diverging
+// from a zero baseline: gains use --pos, cuts --neg, each bar directly labelled
+// with its signed value. Years with a null change (a company's first year) are
+// dropped, not shown as empty slots. Zero client JS; native <title> tooltips.
+
+interface Props {
+  /** ROC years, ascending. */
+  years: number[];
+  /** medianChangePct per year (a percentage number, 19.55 = 19.55%), aligned to `years`. */
+  values: (number | null)[];
+  height?: number;
+}
+
+const { years, values, height = 200 } = Astro.props;
+
+const pts = years
+  .map((year, i) => ({ year, v: values[i] ?? null }))
+  .filter((p): p is { year: number; v: number } => p.v != null && Number.isFinite(p.v));
+
+const W = 760;
+const H = height;
+const PAD = { top: 24, right: 20, bottom: 28, left: 20 };
+const x0 = PAD.left;
+const x1 = W - PAD.right;
+const y0 = PAD.top;
+const y1 = H - PAD.bottom;
+const pw = x1 - x0;
+const ph = y1 - y0;
+
+const n = pts.length;
+const vMax = Math.max(0, ...pts.map((p) => p.v));
+const vMin = Math.min(0, ...pts.map((p) => p.v));
+const span = vMax - vMin || 1;
+const pad = span * 0.18;
+const aMax = vMax + pad;
+const aMin = vMin - pad;
+const yAt = (v: number): number => y1 - ((v - aMin) / (aMax - aMin || 1)) * ph;
+const zeroY = yAt(0);
+
+const slot = n > 0 ? pw / n : pw;
+const bw = Math.min(46, slot * 0.5);
+const xAt = (i: number): number => x0 + slot * (i + 0.5);
+
+const fmtBar = (v: number): string => {
+  const sign = v > 0 ? '+' : v < 0 ? '−' : '';
+  return `${sign}${Math.abs(v).toFixed(1)}%`;
+};
+---
+
+<figure class="yoy" role="group" aria-label="歷年中位數年增幅度">
+  <svg
+    viewBox={`0 0 ${W} ${H}`}
+    width="100%"
+    height={H}
+    preserveAspectRatio="xMidYMid meet"
+    role="img"
+  >
+    <line class="zero" x1={x0} x2={x1} y1={zeroY} y2={zeroY}></line>
+    {
+      pts.map((p, i) => {
+        const yv = yAt(p.v);
+        const top = Math.min(yv, zeroY);
+        const h = Math.max(1, Math.abs(yv - zeroY));
+        const pos = p.v >= 0;
+        return (
+          <g class:list={['bar', pos ? 'is-pos' : 'is-neg']}>
+            <rect x={xAt(i) - bw / 2} y={top} width={bw} height={h} rx="3">
+              <title>{`${p.year} 年度：中位數年增 ${fmtBar(p.v)}`}</title>
+            </rect>
+            <text class="val" x={xAt(i)} y={pos ? top - 6 : top + h + 13} text-anchor="middle">
+              {fmtBar(p.v)}
+            </text>
+            <text class="xlab" x={xAt(i)} y={y1 + 18} text-anchor="middle">
+              {p.year}
+            </text>
+          </g>
+        );
+      })
+    }
+  </svg>
+</figure>
+
+<style>
+  .yoy {
+    margin: 0;
+  }
+  .yoy svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+  .zero {
+    stroke: var(--border-strong);
+    stroke-width: 1;
+  }
+  .bar.is-pos rect {
+    fill: var(--pos);
+  }
+  .bar.is-neg rect {
+    fill: var(--neg);
+  }
+  .val {
+    font-size: 11px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .bar.is-pos .val {
+    fill: var(--pos);
+  }
+  .bar.is-neg .val {
+    fill: var(--neg);
+  }
+  .xlab {
+    fill: var(--text-muted);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+  }
+</style>

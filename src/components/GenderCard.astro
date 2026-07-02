@@ -1,0 +1,109 @@
+---
+// Male/female pay figures for one year, plus the female-to-male median ratio.
+// Only rendered by the caller when the year actually carries gender fields
+// (MOPS began disclosing them in 114). The caveat is load-bearing: this is a
+// structural gap, not proof of unequal pay for equal work.
+import { formatWanUnit } from '../lib/format';
+
+interface Props {
+  /** ROC year the figures belong to. */
+  year: number;
+  maleAvgK: number | null;
+  femaleAvgK: number | null;
+  maleMedianK: number | null;
+  femaleMedianK: number | null;
+}
+
+const { year, maleAvgK, femaleAvgK, maleMedianK, femaleMedianK } = Astro.props;
+
+const ratio =
+  femaleMedianK != null && maleMedianK != null && maleMedianK !== 0
+    ? (femaleMedianK / maleMedianK) * 100
+    : null;
+---
+
+<section class="gender">
+  <h2>男女薪資（{year} 年度）</h2>
+  <div class="gcols">
+    <div class="gcol">
+      <span class="glabel">男性</span>
+      <span class="grow"><span class="gk">平均</span><b>{formatWanUnit(maleAvgK)}</b></span>
+      <span class="grow"><span class="gk">中位</span><b>{formatWanUnit(maleMedianK)}</b></span>
+    </div>
+    <div class="gcol">
+      <span class="glabel">女性</span>
+      <span class="grow"><span class="gk">平均</span><b>{formatWanUnit(femaleAvgK)}</b></span>
+      <span class="grow"><span class="gk">中位</span><b>{formatWanUnit(femaleMedianK)}</b></span>
+    </div>
+  </div>
+  {
+    ratio != null ? (
+      <p class="gratio">
+        女性中位數為男性的 <b>{ratio.toFixed(1)}%</b>
+      </p>
+    ) : null
+  }
+  <p class="gcaveat">
+    男女差異可能反映職務結構不同，非同工不同酬之直接證據。{year} 年度起始揭露。
+  </p>
+</section>
+
+<style>
+  .gender {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+  }
+  .gender h2 {
+    margin: 0 0 12px;
+    font-size: 1rem;
+  }
+  .gcols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .gcol {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px;
+    background: var(--surface-alt);
+    border-radius: 8px;
+  }
+  .glabel {
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+  .grow {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .gk {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+  }
+  .grow b {
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+  .gratio {
+    margin: 12px 0 0;
+    color: var(--text);
+    font-size: 0.92rem;
+  }
+  .gratio b {
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .gcaveat {
+    margin: 8px 0 0;
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    line-height: 1.5;
+  }
+</style>
