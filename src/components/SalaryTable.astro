@@ -47,7 +47,7 @@ const changeClass = (p: number | null): string =>
             >
               <span class="th-label">
                 {c.label}
-                {'hint' in c && c.hint ? <span class="th-hint">（{c.hint}）</span> : null}
+                {'hint' in c && c.hint ? <span class="th-hint">{c.hint}</span> : null}
               </span>
               <span class="arrow" aria-hidden="true" />
             </th>
@@ -134,6 +134,13 @@ const changeClass = (p: number | null): string =>
   .salary-table .th-hint {
     color: var(--text-muted);
     font-weight: 500;
+  }
+  /* Unit parens are decorative — CSS-supplied so mobile can drop them and show a bare 「萬」. */
+  .salary-table .th-hint::before {
+    content: '（';
+  }
+  .salary-table .th-hint::after {
+    content: '）';
   }
   .salary-table .arrow {
     display: inline-block;
@@ -260,11 +267,29 @@ const changeClass = (p: number | null): string =>
       padding: 7px 9px;
     }
 
-    /* 讓「中位數 + 平均數」和名稱能同框：拿掉表頭「（萬）」單位提示
-       （單位已於表格下方 .table-note 標示），並輕微收窄數字 / 排名 / 代號欄，
-       使保留的 5 欄在 ~375px 寬手機不需水平捲動。 */
+    /* 讓「中位數 + 平均數」和名稱能同框：把「萬」單位縮成小字、疊在表頭標籤下方自成一行
+       (比「中位數」窄，不佔欄寬)，並輕微收窄數字 / 排名 / 代號欄，使保留的 5 欄在
+       ~375px 寬手機不需水平捲動。桌機 (>640px) 仍維持行內「中位數（萬）」。 */
     .salary-table .th-hint {
-      display: none;
+      display: block;
+      font-size: 0.62rem;
+      font-weight: 400;
+      line-height: 1;
+      margin-top: 1px;
+      color: var(--text-secondary);
+    }
+    .salary-table .th-hint::before,
+    .salary-table .th-hint::after {
+      content: none; /* 手機去掉括號，只留「萬」一個字 */
+    }
+    .salary-table .c-num .th-label {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-end; /* 數字欄靠右，「萬」對齊數字側 */
+      vertical-align: top;
+    }
+    .salary-table .c-num .arrow {
+      vertical-align: top; /* 排序箭頭留在標籤那一行，不被擠到第三行 */
     }
     .salary-table .c-num {
       font-size: 0.85rem;
