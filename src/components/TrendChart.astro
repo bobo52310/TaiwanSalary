@@ -245,4 +245,23 @@ for (let k = 1; k < endLabels.length; k++) {
     font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
+
+  /* The SVG is one fixed 760-wide viewBox scaled to fit the container, so on a phone
+     (~360 CSS px) everything shrinks ~2×, dropping 11px labels to an unreadable ~5px.
+     Font-size is in user units, so bumping it here scales back up after the transform —
+     these values land near ~9–10 CSS px on a 390px viewport. Positions are unchanged and
+     the padding still clears the larger text (see PAD.left / PAD.right). */
+  @media (max-width: 640px) {
+    .ytick,
+    .xtick {
+      font-size: 17px;
+    }
+    .yunit {
+      font-size: 15px;
+    }
+    .end-label,
+    .single-val {
+      font-size: 19px;
+    }
+  }
 </style>

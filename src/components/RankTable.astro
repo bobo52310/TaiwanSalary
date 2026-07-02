@@ -103,7 +103,8 @@ const metricCols: MetricCol[] =
     overflow-x: auto;
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    background: var(--surface);
+    /* Self-revealing horizontal scroll-shadow (final layer is the surface fill). */
+    background: var(--tscroll);
   }
   .rank-table table {
     width: 100%;

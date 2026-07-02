@@ -13,6 +13,7 @@
   --surface: #fcfcfb; /* cards, table, header */
   --surface-alt: #f5f4f1; /* zebra row */
   --row-hover: #eaf1fb; /* row hover (faint accent tint) */
+  --surface-t: rgba(252, 252, 251, 0); /* --surface at 0 alpha — scroll-shadow fade end */
 
   /* Ink (text tokens — data marks never wear these, and text never wears a mark color) */
   --text: #0b0b0b; /* 19.2:1 */
@@ -39,6 +40,25 @@
 
   --maxw: 1160px;
   --radius: 10px;
+
+  /* Horizontal scroll-shadow stack for wide tables. Applied as `background: var(--tscroll)`
+     on the overflow-x container (at all widths — see below). var(--surface)/--surface-t
+     resolve per-theme at use time, so this one definition works in light and dark. The two
+     `local` cover layers scroll with the content and mask each edge shadow until you can
+     scroll that way, so a visible shadow means "more columns off this edge" — and when the
+     table doesn't overflow at all, both covers sit at the edges and no shadow shows. That
+     self-revealing property is why it's safe to apply unconditionally (it also catches the
+     641–900px band — phone landscape / tablets — where the widest tables still overflow).
+     The final layer is the surface fill, so it replaces `background: var(--surface)` cleanly.
+     Caveat: `background-attachment: local` regressed on iOS Safari 14–15.3 (fixed 15.4); on
+     those old versions the shadow just doesn't appear — the surface fill still paints, so it
+     degrades to the prior plain look with no layout break. */
+  --tscroll:
+    linear-gradient(to right, var(--surface) 30%, var(--surface-t)) 0 0 / 34px 100% no-repeat local,
+    linear-gradient(to left, var(--surface) 30%, var(--surface-t)) 100% 0 / 34px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.28), transparent) 0 0 / 15px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.28), transparent) 100% 0 / 15px 100% no-repeat scroll,
+    var(--surface);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -47,6 +67,7 @@
     --surface: #1a1a19;
     --surface-alt: #201f1e;
     --row-hover: #23282f;
+    --surface-t: rgba(26, 26, 25, 0);
 
     --text: #ffffff; /* 17.4:1 */
     --text-secondary: #c3c2b7; /* 9.7:1 */

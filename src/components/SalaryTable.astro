@@ -98,7 +98,9 @@ const changeClass = (p: number | null): string =>
     overflow-x: auto;
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    background: var(--surface);
+    /* Self-revealing horizontal scroll-shadow (final layer is the surface fill). Signals the
+       off-screen columns (平均數 …) whenever the table overflows — mobile and the tablet band. */
+    background: var(--tscroll);
   }
   .salary-table table {
     width: 100%;
@@ -158,6 +160,20 @@ const changeClass = (p: number | null): string =>
   .salary-table th[aria-sort='descending'] .arrow::after {
     content: '▼';
     opacity: 1;
+  }
+
+  /* Touch devices can't hover, so the hover-reveal below never fires and every column
+     looks unsortable. Show a faint ⇅ on the idle sortable headers so tap-to-sort is
+     discoverable. Mouse users still get the cleaner hover-reveal. */
+  @media (hover: none) {
+    /* On touch this ⇅ is the ONLY sortability cue (the hover-reveal never fires), so it must
+       clear the 3:1 non-text-contrast bar — render at the muted token's full contrast, not a
+       dimmed 0.4 (which measured ~1.5:1). Colour still distinguishes it from the accent-blue
+       active ▲/▼. */
+    .salary-table th[aria-sort='none'] .arrow::after {
+      content: '⇅';
+      opacity: 1;
+    }
   }
 
   /* Rows: hairline separators (no zebra — it breaks up under filtering). */

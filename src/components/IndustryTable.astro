@@ -99,7 +99,8 @@ const changeClass = (p: number | null): string =>
     overflow-x: auto;
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    background: var(--surface);
+    /* Self-revealing horizontal scroll-shadow (final layer is the surface fill). */
+    background: var(--tscroll);
   }
   .ind-table table {
     width: 100%;
@@ -156,6 +157,14 @@ const changeClass = (p: number | null): string =>
   .ind-table th[aria-sort='descending'] .arrow::after {
     content: '▼';
     opacity: 1;
+  }
+
+  /* Touch has no hover: show a faint ⇅ on idle sortable headers so tap-to-sort shows. */
+  @media (hover: none) {
+    .ind-table th[aria-sort='none'] .arrow::after {
+      content: '⇅';
+      opacity: 1;
+    }
   }
   .ind-table tbody tr {
     border-top: 1px solid var(--border);

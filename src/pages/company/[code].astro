@@ -483,7 +483,10 @@ const breadcrumbJsonLd = breadcrumbList(Astro.site, [
     overflow-x: auto;
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    background: var(--surface);
+    /* Self-revealing horizontal scroll-shadow: this table keeps all 8 columns at every width,
+       so it overflows on phones AND on tablets/landscape — the edge shadow signals the hidden
+       平均數 / EPS / 同業平均 columns wherever that happens. Final layer is the surface fill. */
+    background: var(--tscroll);
   }
   .hist-table table {
     width: 100%;
@@ -534,6 +537,13 @@ const breadcrumbJsonLd = breadcrumbList(Astro.site, [
     content: '▼';
     opacity: 1;
     color: var(--accent);
+  }
+  /* Touch has no hover: surface a faint ⇅ so tap-to-sort is discoverable. */
+  @media (hover: none) {
+    .hist-table th[aria-sort='none'] .arrow::after {
+      content: '⇅';
+      opacity: 1;
+    }
   }
   .hist-table .c-num {
     font-variant-numeric: tabular-nums;

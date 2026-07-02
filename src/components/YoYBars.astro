@@ -117,4 +117,15 @@ const fmtBar = (v: number): string => {
     font-size: 11px;
     font-variant-numeric: tabular-nums;
   }
+
+  /* Same fixed-viewBox down-scaling as TrendChart: bump label sizes so the per-bar values
+     and year labels stay legible (~9–10 CSS px) on a phone-width viewport. */
+  @media (max-width: 640px) {
+    .val {
+      font-size: 18px;
+    }
+    .xlab {
+      font-size: 17px;
+    }
+  }
 </style>

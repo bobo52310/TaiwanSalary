@@ -153,7 +153,9 @@ const description = `台灣上市櫃 ${industryCount} 種產業非主管全時�
     overflow-x: auto;
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    background: var(--surface);
+    /* Self-revealing horizontal scroll-shadow (final layer is the surface fill). The long
+       CJK headers (中位數的中位數) overflow on a phone; the edge shadow signals it. */
+    background: var(--tscroll);
   }
   .idx-table table {
     width: 100%;
@@ -209,6 +211,13 @@ const description = `台灣上市櫃 ${industryCount} 種產業非主管全時�
     opacity: 1;
     color: var(--accent);
   }
+  /* Touch has no hover: surface a faint ⇅ so tap-to-sort is discoverable. */
+  @media (hover: none) {
+    .idx-table th[aria-sort='none'] .arrow::after {
+      content: '⇅';
+      opacity: 1;
+    }
+  }
   .idx-table .c-num {
     font-variant-numeric: tabular-nums;
     color: var(--text);
@@ -224,6 +233,14 @@ const description = `台灣上市櫃 ${industryCount} 種產業非主管全時�
   }
   .idx-table tbody tr:hover {
     background: var(--row-hover);
+  }
+  @media (max-width: 640px) {
+    /* Tighten padding (was 8px 14px) to match the other tables and claw back width
+       so more of each figure shows before the horizontal scroll. */
+    .idx-table th,
+    .idx-table td {
+      padding: 7px 10px;
+    }
   }
 
   .foot {
