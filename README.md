@@ -1,10 +1,12 @@
 # 哪家給最多｜台灣上市櫃薪資查詢(TaiwanSalary)
 
+[![線上網址](https://img.shields.io/badge/%E7%B7%9A%E4%B8%8A%E7%B6%B2%E5%9D%80-salary.bobochen.dev-2ea44f?style=flat-square&logo=googlechrome&logoColor=white)](https://salary.bobochen.dev)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
+[![Built with Astro](https://img.shields.io/badge/Astro-7-BC52EE?style=flat-square&logo=astro&logoColor=white)](https://astro.build)
+
 查詢台灣 **1,847 家上市櫃公司**「非擔任主管職務之全時員工」年薪 — 中位數、平均數、調薪幅度、男女薪資 — 一頁搜尋,免下拉選單。
 
 > 官方的[公開資訊觀測站查詢頁](https://mopsov.twse.com.tw/mops/web/t100sb15)要逐一選擇年度/市場別/產業別才能看到零碎結果;本站把 **民國 108–114 年(2019–2025)** 全部資料整理成好查、好比較的靜態網站。
-
-🌐 線上網址:`https://salary.bobochen.dev`
 
 ## 功能特色
 
