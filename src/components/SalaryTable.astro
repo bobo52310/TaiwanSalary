@@ -253,10 +253,28 @@ const changeClass = (p: number | null): string =>
     }
     .salary-table .c-sub {
       display: block;
+      font-size: 0.75rem;
     }
     .salary-table th,
     .salary-table td {
       padding: 7px 9px;
+    }
+
+    /* 讓「中位數 + 平均數」和名稱能同框：拿掉表頭「（萬）」單位提示
+       （單位已於表格下方 .table-note 標示），並輕微收窄數字 / 排名 / 代號欄，
+       使保留的 5 欄在 ~375px 寬手機不需水平捲動。 */
+    .salary-table .th-hint {
+      display: none;
+    }
+    .salary-table .c-num {
+      font-size: 0.85rem;
+      padding-inline: 7px;
+    }
+    .salary-table .c-code {
+      padding-inline: 7px;
+    }
+    .salary-table .c-rank {
+      padding-inline-end: 8px;
     }
   }
 </style>
