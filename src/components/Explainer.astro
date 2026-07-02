@@ -1,0 +1,86 @@
+---
+// Explains why median matters more than mean for reading salary data.
+// compact: a one-liner with an expandable <details> for the worked example.
+// full (default): the whole note laid out as a callout box.
+interface Props {
+  compact?: boolean;
+}
+const { compact = false } = Astro.props;
+---
+
+{
+  compact ? (
+    <details class="explainer explainer--compact">
+      <summary>
+        <span class="lede">中位數比平均數更能代表多數員工的實際薪資</span>
+        <span class="more">為什麼？</span>
+      </summary>
+      <p>
+        平均數容易被少數高薪拉高；中位數是排在正中間那位員工的年薪，更接近多數員工的實際狀況。例：台積電
+        114 年度平均 407.2 萬、中位數 316.2 萬——代表一半員工年薪不到 316.2 萬。
+      </p>
+    </details>
+  ) : (
+    <aside class="explainer" aria-label="名詞說明">
+      <h2>怎麼看這些數字？</h2>
+      <p>
+        平均數容易被少數高薪拉高；中位數是排在正中間那位員工的年薪，更接近多數員工的實際狀況。例：台積電
+        114 年度平均 407.2 萬、中位數 316.2 萬——代表一半員工年薪不到 316.2 萬。
+      </p>
+    </aside>
+  )
+}
+
+<style>
+  .explainer {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-inline-start: 3px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin: 0;
+  }
+  .explainer h2 {
+    margin: 0 0 6px;
+    font-size: 1rem;
+    color: var(--text);
+  }
+  .explainer p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+  }
+
+  /* Compact: summary row, details reveal on toggle. */
+  .explainer--compact {
+    padding: 0;
+  }
+  .explainer--compact summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 12px 16px;
+    font-size: 0.92rem;
+  }
+  .explainer--compact summary::-webkit-details-marker {
+    display: none;
+  }
+  .explainer--compact .lede {
+    color: var(--text);
+    font-weight: 550;
+  }
+  .explainer--compact .more {
+    color: var(--link);
+    margin-inline-start: auto;
+    white-space: nowrap;
+    font-size: 0.86rem;
+  }
+  .explainer--compact[open] .more {
+    visibility: hidden;
+  }
+  .explainer--compact p {
+    padding: 0 16px 14px;
+  }
+</style>

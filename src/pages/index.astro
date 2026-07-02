@@ -1,21 +1,280 @@
 ---
+import Base from '../layouts/Base.astro';
+import Explainer from '../components/Explainer.astro';
+import SalaryTable from '../components/SalaryTable.astro';
+import { formatWanUnit, formatInt, rocToCe } from '../lib/format';
+import type {
+  CompaniesFile,
+  MarketStatsFile,
+  IndustriesFile,
+  SalaryTableRow,
+} from '../lib/types';
 import companiesData from '../data/companies.json';
+import marketStatsData from '../data/market-stats.json';
+import industriesData from '../data/industries.json';
 
-const companyCount = companiesData.meta.counts.companies;
-const { latestYear } = companiesData.meta;
+// JSON imports infer wide literal types (e.g. market: string); cast to the domain
+// types once here so the rest of the file is fully typed. Data is build-time only.
+const companies = companiesData as unknown as CompaniesFile;
+const marketStats = marketStatsData as unknown as MarketStatsFile;
+const industries = industriesData as unknown as IndustriesFile;
+
+const { latestYear } = companies.meta;
+const ly = String(latestYear);
+
+// Every company that has a row for the latest year, as flat table rows.
+const rows: SalaryTableRow[] = Object.values(companies.companies)
+  .map((c) => c.years[ly])
+  .filter((y): y is NonNullable<typeof y> => Boolean(y))
+  .map((y) => ({
+    code: y.code,
+    name: y.name,
+    industry: y.industry,
+    market: y.market,
+    medianK: y.medianK,
+    avgK: y.avgK,
+    medianChangePct: y.medianChangePct,
+    employees: y.employees,
+  }));
+
+// Default order: median salary, high → low, with unknowns last.
+rows.sort((a, b) => {
+  if (a.medianK === null) return b.medianK === null ? 0 : 1;
+  if (b.medianK === null) return -1;
+  return b.medianK - a.medianK;
+});
+
+const scope = marketStats[ly];
+if (!scope) throw new Error(`market-stats.json is missing year ${ly}`);
+
+// KPI chips. P50 values are the median OF each company's median — a company-level
+// statistic, not an employee-level one — so the sub-labels say so explicitly.
+const chips = [
+  {
+    label: '全市場中位數 P50',
+    value: formatWanUnit(scope.all.medianP50),
+    sub: `${formatInt(scope.all.companyCount)} 家公司・各公司中位數的中位數`,
+  },
+  {
+    label: '上市 P50',
+    value: formatWanUnit(scope.sii.medianP50),
+    sub: `${formatInt(scope.sii.companyCount)} 家上市公司`,
+  },
+  {
+    label: '上櫃 P50',
+    value: formatWanUnit(scope.otc.medianP50),
+    sub: `${formatInt(scope.otc.companyCount)} 家上櫃公司`,
+  },
+  {
+    label: '收錄公司',
+    value: formatInt(scope.all.companyCount),
+    sub: `民國 ${latestYear} 年度（${rocToCe(latestYear)}）`,
+  },
+];
+
+const industryList = Object.keys(industries).sort((a, b) => a.localeCompare(b, 'zh-Hant'));
+const total = formatInt(rows.length);
+
+const title = '台灣上市櫃薪資查詢 | 非主管全時員工年薪中位數';
+const description = `查詢台灣 ${total} 家上市櫃公司「非擔任主管職務之全時員工」的年薪中位數、平均數與年增率。資料來源：公開資訊觀測站，民國 ${latestYear} 年度。`;
 ---
 
-<!doctype html>
-<html lang="zh-Hant-TW">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>台灣上市櫃薪資查詢（建置中）</title>
-  </head>
-  <body>
-    <main>
-      <h1>台灣上市櫃薪資查詢（建置中）— 已載入 {companyCount} 家公司資料</h1>
-      <p>最新資料年度：民國 {latestYear} 年</p>
-    </main>
-  </body>
-</html>
+<Base title={title} description={description} canonical="/">
+  <section class="hero">
+    <h1>台灣上市櫃薪資查詢</h1>
+    <p class="tagline">
+      一次查詢 {total} 家上市櫃公司「非擔任主管職務之全時員工」的年薪中位數、平均數與年增，資料來自公開資訊觀測站。
+    </p>
+  </section>
+
+  <Explainer compact />
+
+  <ul class="chips" aria-label="全市場統計摘要">
+    {
+      chips.map((chip) => (
+        <li class="chip">
+          <span class="chip-label">{chip.label}</span>
+          <span class="chip-value">{chip.value}</span>
+          <span class="chip-sub">{chip.sub}</span>
+        </li>
+      ))
+    }
+  </ul>
+
+  <div class="controls">
+    <div class="ctrl ctrl-search">
+      <label class="sr-only" for="q">搜尋公司</label>
+      <input id="q" type="search" placeholder="公司名稱或代號…" autocomplete="off" spellcheck="false" />
+    </div>
+    <div class="ctrl">
+      <label class="sr-only" for="ind">產業</label>
+      <select id="ind">
+        <option value="">全部產業</option>
+        {industryList.map((ind) => <option value={ind}>{ind}</option>)}
+      </select>
+    </div>
+    <fieldset class="seg" aria-label="市場別">
+      <label><input type="radio" name="mkt" value="all" checked /><span>全部</span></label>
+      <label><input type="radio" name="mkt" value="sii" /><span>上市</span></label>
+      <label><input type="radio" name="mkt" value="otc" /><span>上櫃</span></label>
+    </fieldset>
+    <p class="count">顯示 <b data-count>{total}</b> / {total} 家</p>
+  </div>
+
+  <SalaryTable rows={rows} year={latestYear} />
+
+  <p class="table-note">
+    單位：萬元（新台幣）。年增 = 中位數較前一年度變動。資料年度：民國 {latestYear} 年（{rocToCe(latestYear)}）。
+  </p>
+</Base>
+
+<script>
+  import '../scripts/table-enhance.ts';
+</script>
+
+<style>
+  .hero {
+    margin: 24px 0 16px;
+  }
+  .hero h1 {
+    margin: 0 0 8px;
+    font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2rem);
+  }
+  .tagline {
+    margin: 0;
+    max-width: 60ch;
+    color: var(--text-secondary);
+  }
+
+  .chips {
+    list-style: none;
+    margin: 18px 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .chip-label {
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+  }
+  .chip-value {
+    /* Hero-ish figure: proportional figures (not tabular), so it reads tight. */
+    color: var(--text);
+    font-size: 1.6rem;
+    font-weight: 650;
+    line-height: 1.1;
+  }
+  .chip-sub {
+    color: var(--text-secondary);
+    font-size: 0.76rem;
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 12px;
+    margin: 16px 0 12px;
+  }
+  .ctrl-search {
+    flex: 1 1 220px;
+  }
+  #q,
+  #ind {
+    width: 100%;
+    font: inherit;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 8px 11px;
+  }
+  #ind {
+    cursor: pointer;
+  }
+
+  .seg {
+    display: inline-flex;
+    gap: 2px;
+    margin: 0;
+    padding: 2px;
+    border: 1px solid var(--border-strong);
+    border-radius: 9px;
+  }
+  .seg label {
+    position: relative;
+    display: block;
+  }
+  .seg input {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .seg span {
+    display: block;
+    padding: 5px 13px;
+    border-radius: 7px;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+  }
+  .seg input:checked + span {
+    background: var(--seg-fill);
+    color: #fff;
+    font-weight: 600;
+  }
+  .seg input:focus-visible + span {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .count {
+    margin: 0;
+    margin-inline-start: auto;
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .count b {
+    color: var(--text);
+  }
+
+  .table-note {
+    margin: 10px 2px 0;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @media (max-width: 640px) {
+    .chips {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .count {
+      margin-inline-start: 0;
+      width: 100%;
+    }
+  }
+</style>

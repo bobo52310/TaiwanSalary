@@ -1,0 +1,62 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+  /** Path for the canonical URL, e.g. "/rank/median/". Defaults to the current page. */
+  canonical?: string;
+}
+
+const { title, description, canonical } = Astro.props;
+
+// Astro.site is set in astro.config.mjs, so this is always absolute.
+const canonicalURL = new URL(canonical ?? Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="zh-Hant-TW">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL.href} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL.href} />
+    <meta name="twitter:card" content="summary" />
+    <!-- Extra head tags (per-page OG/JSON-LD) — Stage 6 fills this out. -->
+    <slot name="head" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <a href="/" class="site-brand">台灣上市櫃薪資查詢</a>
+        <nav class="site-nav" aria-label="主要導覽">
+          <a href="/rank/median/">排行榜</a>
+          <a href="/industry/">產業</a>
+          <a href="/about/">關於</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap">
+        <span
+          >資料來源：<a
+            href="https://mopsov.twse.com.tw/mops/web/t100sb15"
+            target="_blank"
+            rel="noopener">公開資訊觀測站（t100sb15）</a
+          ></span
+        >
+        <span>非官方網站，僅供參考。</span>
+      </div>
+    </footer>
+  </body>
+</html>

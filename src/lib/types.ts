@@ -121,3 +121,15 @@ export interface MarketStatsYear {
 
 /** src/data/market-stats.json : { [year]: MarketStatsYear } */
 export type MarketStatsFile = Record<string, MarketStatsYear>;
+
+/** One row rendered in the homepage salary table, derived from a CompanyYearData. */
+export interface SalaryTableRow {
+  code: string;
+  name: string;
+  industry: string;
+  market: Market;
+  medianK: number | null;
+  avgK: number | null;
+  medianChangePct: number | null;
+  employees: number | null;
+}

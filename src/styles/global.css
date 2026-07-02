@@ -1,0 +1,182 @@
+/*
+ * Global tokens + site chrome. Colors come from the data-viz reference palette,
+ * validated against both surfaces (light #fcfcfb / dark #1a1a19) with the skill's
+ * contrast checker — see the token table below for the measured ratios. Component
+ * visuals (table, stat chips, explainer) live in their own scoped <style> blocks.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* Surfaces */
+  --page: #f9f9f7; /* page plane */
+  --surface: #fcfcfb; /* cards, table, header */
+  --surface-alt: #f5f4f1; /* zebra row */
+  --row-hover: #eaf1fb; /* row hover (faint accent tint) */
+
+  /* Ink (text tokens — data marks never wear these, and text never wears a mark color) */
+  --text: #0b0b0b; /* 19.2:1 */
+  --text-secondary: #52514e; /* 7.7:1 */
+  --text-muted: #898781; /* 3.5:1 — large text / decoration only */
+
+  /* Hairlines */
+  --border: #e1e0d9; /* gridline hairline */
+  --border-strong: #c3c2b7; /* baseline / thead divider */
+
+  /* Accent (single accent: interactive marks, focus ring, active sort) */
+  --accent: #2a78d6; /* 4.3:1 as a mark */
+  --link: #256abf; /* 5.3:1 as text */
+  --seg-fill: #256abf; /* selected segmented-control pill (theme-independent; white text 5.4:1, visible on both surfaces) */
+
+  /* Diverging delta text (semantic: up = good, down = bad; always paired with a sign) */
+  --pos: #006300; /* 7.4:1 */
+  --neg: #c62828; /* 5.5:1 */
+
+  --focus-ring: #2a78d6;
+
+  --font: -apple-system, "PingFang TC", "Microsoft JhengHei", "Noto Sans TC",
+    system-ui, sans-serif;
+
+  --maxw: 1160px;
+  --radius: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --surface-alt: #201f1e;
+    --row-hover: #23282f;
+
+    --text: #ffffff; /* 17.4:1 */
+    --text-secondary: #c3c2b7; /* 9.7:1 */
+    --text-muted: #898781; /* 4.9:1 */
+
+    --border: #2c2c2a;
+    --border-strong: #383835;
+
+    --accent: #3987e5; /* 4.8:1 */
+    --link: #3987e5;
+
+    --pos: #0ca30c; /* 5.2:1 */
+    --neg: #e66767; /* 5.4:1 */
+
+    --focus-ring: #3987e5;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--link);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+  font-weight: 650;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Numeric alignment: only columns of figures get tabular figures. */
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline: 20px;
+}
+
+/* ---- Header ---- */
+.site-header {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+.site-header .wrap {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-height: 58px;
+  flex-wrap: wrap;
+}
+.site-brand {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+.site-brand:hover {
+  text-decoration: none;
+}
+.site-nav {
+  display: flex;
+  gap: 18px;
+  margin-inline-start: auto;
+  font-size: 0.94rem;
+}
+.site-nav a {
+  color: var(--text-secondary);
+}
+.site-nav a:hover {
+  color: var(--link);
+}
+
+/* ---- Footer ---- */
+.site-footer {
+  border-top: 1px solid var(--border);
+  margin-top: 48px;
+  padding-block: 24px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+.site-footer .wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: baseline;
+}
+.site-footer a {
+  color: var(--text-secondary);
+  text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+  body {
+    font-size: 15px;
+  }
+  .wrap {
+    padding-inline: 14px;
+  }
+}

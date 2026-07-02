@@ -1,0 +1,226 @@
+---
+import type { SalaryTableRow } from '../lib/types';
+import { formatWan, formatPct, formatEmployees } from '../lib/format';
+
+interface Props {
+  rows: SalaryTableRow[];
+  year: number;
+}
+
+const { rows, year } = Astro.props;
+
+// Column definitions drive both the <thead> and the sort logic in table-enhance.ts
+// (which reads data-key / data-type off each <th>). Numeric columns carry data-s on
+// their <td>; the median column is the server-rendered default sort (desc).
+const columns = [
+  { key: 'code', label: '代號', type: 'str', cls: 'c-code' },
+  { key: 'name', label: '名稱', type: 'str', cls: 'c-name' },
+  { key: 'industry', label: '產業', type: 'str', cls: 'c-ind' },
+  { key: 'median', label: '中位數', hint: '萬', type: 'num', cls: 'c-num' },
+  { key: 'avg', label: '平均數', hint: '萬', type: 'num', cls: 'c-num' },
+  { key: 'change', label: '中位數年增', type: 'num', cls: 'c-num c-chg' },
+  { key: 'employees', label: '員工數', type: 'num', cls: 'c-num c-emp' },
+  { key: 'market', label: '市場', type: 'str', cls: 'c-mkt' },
+] as const;
+
+const marketLabel = (m: SalaryTableRow['market']): string =>
+  m === 'sii' ? '上市' : '上櫃';
+const changeClass = (p: number | null): string =>
+  p === null ? '' : p > 0 ? 'up' : p < 0 ? 'down' : '';
+---
+
+<div class="salary-table">
+  <table data-salary-table aria-label={`民國 ${year} 年度上市櫃公司非主管全時員工薪資`}>
+    <thead>
+      <tr>
+        {
+          columns.map((c) => (
+            <th
+              data-key={c.key}
+              data-type={c.type}
+              class={c.cls}
+              tabindex="0"
+              aria-sort={c.key === 'median' ? 'descending' : 'none'}
+            >
+              <span class="th-label">
+                {c.label}
+                {'hint' in c && c.hint ? <span class="th-hint">（{c.hint}）</span> : null}
+              </span>
+              <span class="arrow" aria-hidden="true" />
+            </th>
+          ))
+        }
+      </tr>
+    </thead>
+    <tbody>
+      {
+        rows.map((r) => (
+          <tr data-c={r.code} data-n={r.name} data-i={r.industry} data-m={r.market}>
+            <td class="c-code">{r.code}</td>
+            <td class="c-name">
+              <a href={`/company/${r.code}/`}>{r.name}</a>
+              <span class="c-sub">{r.industry}</span>
+            </td>
+            <td class="c-ind">{r.industry}</td>
+            <td class="c-num" data-s={r.medianK ?? undefined}>{formatWan(r.medianK)}</td>
+            <td class="c-num" data-s={r.avgK ?? undefined}>{formatWan(r.avgK)}</td>
+            <td
+              class:list={['c-num', 'c-chg', changeClass(r.medianChangePct)]}
+              data-s={r.medianChangePct ?? undefined}
+            >
+              {formatPct(r.medianChangePct)}
+            </td>
+            <td class="c-num c-emp" data-s={r.employees ?? undefined}>
+              {formatEmployees(r.employees)}
+            </td>
+            <td class="c-mkt">{marketLabel(r.market)}</td>
+          </tr>
+        ))
+      }
+      <tr data-empty hidden>
+        <td colspan={columns.length}>找不到符合條件的公司</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!--
+  Global (namespaced under .salary-table) rather than Astro-scoped: the table renders
+  ~1,800 rows, and scoped styles would stamp a data-astro-cid attribute onto every cell,
+  bloating the payload. Every selector here is rooted at .salary-table to stay contained.
+-->
+<style is:global>
+  .salary-table {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+  .salary-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+
+  .salary-table th,
+  .salary-table td {
+    text-align: left;
+    padding: 7px 12px;
+    white-space: nowrap;
+  }
+
+  /* thead: sticky, recessive divider, sortable affordance. */
+  .salary-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--surface);
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.82rem;
+    border-bottom: 1.5px solid var(--border-strong);
+    cursor: pointer;
+    user-select: none;
+  }
+  .salary-table thead th:hover {
+    color: var(--text);
+  }
+  .salary-table .th-hint {
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .salary-table .arrow {
+    display: inline-block;
+    width: 1em;
+    margin-inline-start: 2px;
+    color: var(--text-muted);
+    font-size: 0.7em;
+  }
+  .salary-table th[aria-sort='none'] .arrow::after {
+    content: '⇅';
+    opacity: 0;
+  }
+  .salary-table th:hover .arrow::after {
+    opacity: 0.55;
+  }
+  .salary-table th[aria-sort='ascending'] .arrow,
+  .salary-table th[aria-sort='descending'] .arrow {
+    color: var(--accent);
+  }
+  .salary-table th[aria-sort='ascending'] .arrow::after {
+    content: '▲';
+    opacity: 1;
+  }
+  .salary-table th[aria-sort='descending'] .arrow::after {
+    content: '▼';
+    opacity: 1;
+  }
+
+  /* Rows: hairline separators (no zebra — it breaks up under filtering). */
+  .salary-table tbody tr {
+    border-top: 1px solid var(--border);
+  }
+  .salary-table tbody tr:hover {
+    background: var(--row-hover);
+  }
+  .salary-table tr[hidden] {
+    display: none;
+  }
+
+  /* Numeric columns: right-aligned, tabular figures so digits line up. */
+  .salary-table .c-code,
+  .salary-table .c-num {
+    font-variant-numeric: tabular-nums;
+  }
+  .salary-table .c-num {
+    text-align: right;
+  }
+  .salary-table td.c-num {
+    color: var(--text);
+  }
+  .salary-table .c-name a {
+    font-weight: 550;
+  }
+  .salary-table .c-mkt {
+    color: var(--text-secondary);
+  }
+
+  /* Year-over-year change: diverging semantic color, sign already explicit. */
+  .salary-table td.c-chg.up {
+    color: var(--pos);
+  }
+  .salary-table td.c-chg.down {
+    color: var(--neg);
+  }
+
+  /* Industry subtitle under the name — mobile only. */
+  .salary-table .c-sub {
+    display: none;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 400;
+  }
+
+  .salary-table [data-empty] td {
+    padding: 28px 12px;
+    text-align: center;
+    color: var(--text-secondary);
+  }
+
+  /* Mobile ≤640px: drop 產業 / 年增 / 員工數 / 市場; fold industry into the name cell. */
+  @media (max-width: 640px) {
+    .salary-table .c-ind,
+    .salary-table .c-chg,
+    .salary-table .c-emp,
+    .salary-table .c-mkt {
+      display: none;
+    }
+    .salary-table .c-sub {
+      display: block;
+    }
+    .salary-table th,
+    .salary-table td {
+      padding: 7px 9px;
+    }
+  }
+</style>
