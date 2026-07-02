@@ -94,6 +94,17 @@ a:hover {
   text-decoration: underline;
 }
 
+/* Links sitting inside running prose must not rely on color alone to be
+   distinguishable (WCAG 1.4.1). Site chrome (header nav, tabs, badges, footer
+   meta, card links) lives outside <main> prose blocks and keeps its own
+   affordances, so this only underlines genuine in-text links. */
+main p a,
+main li a,
+main blockquote a {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
 h1,
 h2,
 h3 {

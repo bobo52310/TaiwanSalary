@@ -1,0 +1,3 @@
+# /rank has no index page; send it to the default (median) ranking.
+/rank/ /rank/median/ 301
+/rank /rank/median/ 301

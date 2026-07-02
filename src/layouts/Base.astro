@@ -1,17 +1,29 @@
 ---
 import '../styles/global.css';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 interface Props {
   title: string;
   description: string;
   /** Path for the canonical URL, e.g. "/rank/median/". Defaults to the current page. */
   canonical?: string;
+  /** Site-relative OG image path. Defaults to the shared card. */
+  ogImage?: string;
 }
 
-const { title, description, canonical } = Astro.props;
+const { title, description, canonical, ogImage = '/og-default.png' } = Astro.props;
+
+const SITE_NAME = '台灣上市櫃薪資查詢';
 
 // Astro.site is set in astro.config.mjs, so this is always absolute.
 const canonicalURL = new URL(canonical ?? Astro.url.pathname, Astro.site);
+
+// Only advertise og:image if the asset is really in public/, so a skipped/missing
+// card degrades to a plain summary card instead of a broken preview. process.cwd()
+// is the project root during `astro build`.
+const ogImageExists = existsSync(join(process.cwd(), 'public', ogImage.replace(/^\//, '')));
+const ogImageURL = ogImageExists ? new URL(ogImage, Astro.site).href : null;
 ---
 
 <!doctype html>
@@ -22,12 +34,18 @@ const canonicalURL = new URL(canonical ?? Astro.url.pathname, Astro.site);
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonicalURL.href} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#fcfcfb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1a1a19" media="(prefers-color-scheme: dark)" />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:locale" content="zh_TW" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalURL.href} />
-    <meta name="twitter:card" content="summary" />
-    <!-- Extra head tags (per-page OG/JSON-LD) — Stage 6 fills this out. -->
+    {ogImageURL && <meta property="og:image" content={ogImageURL} />}
+    <meta name="twitter:card" content={ogImageURL ? 'summary_large_image' : 'summary'} />
+    <!-- Extra head tags (per-page OG/JSON-LD) injected by pages via slot="head". -->
     <slot name="head" />
   </head>
   <body>

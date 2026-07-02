@@ -7,6 +7,7 @@ import { formatWanUnit, formatInt, rocToCe } from '../../lib/format';
 import type { CompaniesFile, IndustriesFile, IndustryTableRow } from '../../lib/types';
 import companiesData from '../../data/companies.json';
 import industriesData from '../../data/industries.json';
+import { breadcrumbList } from '../../lib/seo';
 
 const companiesFile = companiesData as unknown as CompaniesFile;
 const industries = industriesData as unknown as IndustriesFile;
@@ -73,9 +74,17 @@ const title = `${name} 薪資排行｜${latestStat ? formatInt(latestStat.count)
 const description = latestStat
   ? `${name}共 ${formatInt(latestStat.count)} 家上市櫃公司，民國 ${latestKey} 年度非主管全時員工薪資「中位數的中位數」為 ${formatWanUnit(latestStat.medianOfMediansK)}，平均為 ${formatWanUnit(latestStat.avgOfAvgK)}。逐家公司中位數、平均與年增排行。`
   : `${name}上市櫃公司非主管全時員工薪資排行。`;
+
+const breadcrumbJsonLd = breadcrumbList(Astro.site, [
+  { name: '首頁', path: '/' },
+  { name: '產業', path: '/industry/' },
+  { name, path: `/industry/${encodeURIComponent(name)}/` },
+]);
 ---
 
 <Base title={title} description={description} canonical={`/industry/${encodeURIComponent(name)}/`}>
+  <script type="application/ld+json" is:inline slot="head" set:html={JSON.stringify(breadcrumbJsonLd)} />
+
   <article class="industry">
     <header class="i-head">
       <p class="crumb"><a href="/">薪資查詢</a> / <a href="/industry/">產業</a></p>

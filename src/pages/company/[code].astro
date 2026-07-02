@@ -16,6 +16,7 @@ import {
 import type { CompaniesFile, CompanyRecord, IndustriesFile } from '../../lib/types';
 import companiesData from '../../data/companies.json';
 import industriesData from '../../data/industries.json';
+import { breadcrumbList } from '../../lib/seo';
 
 const companiesFile = companiesData as unknown as CompaniesFile;
 const industries = industriesData as unknown as IndustriesFile;
@@ -136,9 +137,17 @@ if (cur.medianChangePct != null) descBits.push(`中位數年增 ${formatPct(cur.
 if (cur.employees != null) descBits.push(`員工 ${formatEmployees(cur.employees)} 人`);
 descBits.push(`收錄 ${yearKeys[0]}–${availLatest} 年度歷年趨勢`);
 const description = `${descBits.join('，')}。`;
+
+const breadcrumbJsonLd = breadcrumbList(Astro.site, [
+  { name: '首頁', path: '/' },
+  { name: company.industry, path: industryHref },
+  { name: company.name, path: `/company/${company.code}/` },
+]);
 ---
 
 <Base title={title} description={description} canonical={`/company/${company.code}/`}>
+  <script type="application/ld+json" is:inline slot="head" set:html={JSON.stringify(breadcrumbJsonLd)} />
+
   <article class="company">
     <header class="c-head">
       <p class="crumb"><a href="/">薪資查詢</a> / <a href={industryHref}>{company.industry}</a></p>

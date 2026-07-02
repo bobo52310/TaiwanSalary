@@ -21,6 +21,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
+    "@astrojs/sitemap": "^3.7.3",
     "@types/node": "^24.13.2",
     "cheerio": "^1.2.0",
     "tsx": "^4.22.4",

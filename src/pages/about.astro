@@ -4,6 +4,8 @@ import Explainer from '../components/Explainer.astro';
 import { formatInt } from '../lib/format';
 import type { CompaniesFile } from '../lib/types';
 import companiesData from '../data/companies.json';
+import { faqs } from '../lib/faq';
+import { faqPage } from '../lib/seo';
 
 const companiesFile = companiesData as unknown as CompaniesFile;
 const META_LATEST = companiesFile.meta.latestYear;
@@ -13,40 +15,17 @@ const MOPS_URL = 'https://mopsov.twse.com.tw/mops/web/t100sb15';
 // Placeholder until the repo is public; Stage 6/7 can swap in the real URL.
 const REPO_URL = 'https://github.com/bobo52310/TaiwanSalary';
 
-// FAQ as data so Stage 6 can lift the same Q&A into FAQPage JSON-LD without
-// re-typing it. Keep answers plain-text (no markup) for that reason.
-const faqs: { q: string; a: string }[] = [
-  {
-    q: '為什麼查不到某家公司？',
-    a: '資料僅涵蓋本國上市與上櫃公司。KY 公司、外國企業與 TDR（台灣存託憑證）不在申報範圍；興櫃公司也不在範圍內。若某公司在該年度尚未上市櫃，或已下市／下櫃，也可能查不到。',
-  },
-  {
-    q: '金控／投控的員工數為什麼那麼多？',
-    a: '依 MOPS 申報規定，金控、投控等公司的薪資資訊須納入合併報表之子公司，因此員工數會涵蓋整個集團，遠高於母公司本身。',
-  },
-  {
-    q: '薪資包含哪些項目？',
-    a: '為「非擔任主管職務之全時員工」的年度薪資，包含經常性薪資、加班費，以及獎金、紅利等非經常性給與。不含主管職員工，也不含非全時（兼職、部分工時）員工。單位為新台幣。',
-  },
-  {
-    q: '為什麼有些公司沒有中位數年增？',
-    a: '若該公司該年度為首次揭露（前一年度未上市櫃或未申報），沒有可比較的前一年數字，因此不計算中位數年增。',
-  },
-  {
-    q: '男女薪資是什麼時候開始揭露的？',
-    a: `自民國 ${META_LATEST} 年度起，MOPS 才要求揭露非主管全時員工的男女平均與中位數薪資，因此僅 ${META_LATEST} 年度（含）以後的資料才有性別分項。`,
-  },
-  {
-    q: '數字跟新聞報導不一樣？',
-    a: '最常見的原因是單位換算。MOPS 原始資料單位為「仟元」，本站一律換算為「萬元」顯示（仟元 ÷ 10）。此外新聞常以月薪估算，或採用不同年度、不同口徑，數字自然會有差異。',
-  },
-];
+// faqs (src/lib/faq.ts) drives both the rendered list below and the FAQPage
+// JSON-LD, so the question/answer text lives in exactly one place.
+const faqJsonLd = faqPage(faqs);
 
 const title = '關於本站｜資料來源與常見問題';
 const description = `台灣上市櫃薪資查詢的資料來源（公開資訊觀測站 MOPS t100sb15）、更新頻率、中位數與平均數的差異，以及查不到公司、金控員工數、薪資項目等常見問題整理。`;
 ---
 
 <Base title={title} description={description} canonical="/about/">
+  <script type="application/ld+json" is:inline slot="head" set:html={JSON.stringify(faqJsonLd)} />
+
   <article class="about">
     <header>
       <p class="crumb"><a href="/">薪資查詢</a> / 關於</p>

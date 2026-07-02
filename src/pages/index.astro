@@ -12,6 +12,7 @@ import type {
 import companiesData from '../data/companies.json';
 import marketStatsData from '../data/market-stats.json';
 import industriesData from '../data/industries.json';
+import { website } from '../lib/seo';
 
 // JSON imports infer wide literal types (e.g. market: string); cast to the domain
 // types once here so the rest of the file is fully typed. Data is build-time only.
@@ -77,9 +78,17 @@ const total = formatInt(rows.length);
 
 const title = '台灣上市櫃薪資查詢 | 非主管全時員工年薪中位數';
 const description = `查詢台灣 ${total} 家上市櫃公司「非擔任主管職務之全時員工」的年薪中位數、平均數與年增率。資料來源：公開資訊觀測站，民國 ${latestYear} 年度。`;
+
+const siteJsonLd = website(Astro.site, {
+  name: '台灣上市櫃薪資查詢',
+  description:
+    '查詢台灣上市櫃公司「非擔任主管職務之全時員工」的年薪中位數、平均數與年增率，資料來自公開資訊觀測站（MOPS）。',
+});
 ---
 
 <Base title={title} description={description} canonical="/">
+  <script type="application/ld+json" is:inline slot="head" set:html={JSON.stringify(siteJsonLd)} />
+
   <section class="hero">
     <h1>台灣上市櫃薪資查詢</h1>
     <p class="tagline">

@@ -6,6 +6,7 @@ import { formatInt, rocToCe } from '../../lib/format';
 import type { CompaniesFile } from '../../lib/types';
 import { buildRanking, type RankMetric } from '../../lib/rank';
 import companiesData from '../../data/companies.json';
+import { breadcrumbList, itemList } from '../../lib/seo';
 
 const companiesFile = companiesData as unknown as CompaniesFile;
 const META_LATEST = companiesFile.meta.latestYear;
@@ -56,9 +57,25 @@ const copy = COPY[metric];
 
 let note = `僅列入 ${META_LATEST} 年度平均員工人數 ≥ 30 人之公司（排除 ${formatInt(excluded)} 家）；資料年度：民國 ${META_LATEST} 年（${ceYear}）。`;
 if (copy.extraNote) note = `${note}${copy.extraNote}`;
+
+const activeLabel = tabs.find((t) => t.metric === metric)!.label;
+const breadcrumbJsonLd = breadcrumbList(Astro.site, [
+  { name: '首頁', path: '/' },
+  { name: '排行榜', path: '/rank/median/' },
+  { name: activeLabel, path: `/rank/${metric}/` },
+]);
+// Top 10 of this ranking as an ItemList (kept short — the full 100 rows are in the
+// table for humans; the list is a machine-readable summary of the leaders).
+const rankJsonLd = itemList(
+  Astro.site,
+  rows.slice(0, 10).map((r) => ({ name: r.name, path: `/company/${r.code}/` })),
+);
 ---
 
 <Base title={copy.title} description={copy.description} canonical={`/rank/${metric}/`}>
+  <script type="application/ld+json" is:inline slot="head" set:html={JSON.stringify(breadcrumbJsonLd)} />
+  <script type="application/ld+json" is:inline slot="head" set:html={JSON.stringify(rankJsonLd)} />
+
   <article class="rank">
     <header class="r-head">
       <p class="crumb"><a href="/">薪資查詢</a> / 排行榜</p>
