@@ -182,7 +182,10 @@ const siteJsonLd = website(Astro.site, {
   }
   .tagline {
     margin: 0;
-    max-width: 60ch;
+    /* ch is sized to the half-width "0"; this line is full-width CJK (~2× wider), so a
+       60ch cap fits only ~30 漢字 and wraps the ~52-char tagline. Use an em cap instead:
+       one line on desktop, still wraps on narrower viewports. */
+    max-width: 56em;
     color: var(--text-secondary);
   }
 

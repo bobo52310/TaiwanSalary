@@ -52,6 +52,11 @@ function init(): void {
   const colKeys = headEls.map((th) => th.dataset.key ?? '');
   const colTypes = headEls.map((th) => th.dataset.type ?? 'str');
 
+  // Only the homepage table leads with a 排名 (positional index) column; other tables
+  // that share [data-salary-table] (e.g. the company history table) start with real
+  // data in cell 0, so they must never be renumbered.
+  const hasRankCol = headEls[0]?.classList.contains('c-rank') ?? false;
+
   const bodyRows = Array.from(tbody.rows);
   const emptyRow = bodyRows.find((r) => r.hasAttribute('data-empty')) ?? null;
   const rows: RowVM[] = bodyRows
@@ -102,6 +107,7 @@ function init(): void {
   // tbody in DOM order and renumber the visible rows 1..N. (Server-rendered 1..N in
   // median-desc order is the no-JS fallback.)
   function renumber(): void {
+    if (!hasRankCol) return;
     let n = 0;
     for (const tr of Array.from(tbody.rows)) {
       if (tr === emptyRow || tr.hidden) continue;
