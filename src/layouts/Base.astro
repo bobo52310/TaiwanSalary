@@ -24,6 +24,11 @@ const canonicalURL = new URL(canonical ?? Astro.url.pathname, Astro.site);
 // is the project root during `astro build`.
 const ogImageExists = existsSync(join(process.cwd(), 'public', ogImage.replace(/^\//, '')));
 const ogImageURL = ogImageExists ? new URL(ogImage, Astro.site).href : null;
+
+// Cloudflare Web Analytics beacon token. This is a public value — it ships in
+// every page's HTML — so it lives in source directly. Gated to production builds
+// (`astro build`) so local `astro dev` traffic never pollutes the stats.
+const cfBeaconToken = import.meta.env.PROD ? '5296be06833f40b7aa9b98bf653fd7f3' : null;
 ---
 
 <!doctype html>
@@ -96,5 +101,14 @@ const ogImageURL = ogImageExists ? new URL(ogImage, Astro.site).href : null;
         </div>
       </div>
     </footer>
+
+    {cfBeaconToken && (
+      <script
+        is:inline
+        defer
+        src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon={JSON.stringify({ token: cfBeaconToken })}
+      ></script>
+    )}
   </body>
 </html>
