@@ -1,0 +1,29 @@
+{
+  "name": "taiwan-salary",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "lint": "astro check",
+    "data:fetch": "tsx scripts/fetch-mops.ts",
+    "data:parse": "tsx scripts/parse-mops.ts",
+    "data:build": "tsx scripts/build-data.ts",
+    "data:all": "tsx scripts/fetch-mops.ts --all && tsx scripts/parse-mops.ts --all && tsx scripts/build-data.ts"
+  },
+  "dependencies": {
+    "astro": "^7.0.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "@types/node": "^24.13.2",
+    "cheerio": "^1.2.0",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
+  }
+}

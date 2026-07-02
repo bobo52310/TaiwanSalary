@@ -1,0 +1,21 @@
+---
+import companiesData from '../data/companies.json';
+
+const companyCount = companiesData.meta.counts.companies;
+const { latestYear } = companiesData.meta;
+---
+
+<!doctype html>
+<html lang="zh-Hant-TW">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>台灣上市櫃薪資查詢（建置中）</title>
+  </head>
+  <body>
+    <main>
+      <h1>台灣上市櫃薪資查詢（建置中）— 已載入 {companyCount} 家公司資料</h1>
+      <p>最新資料年度：民國 {latestYear} 年</p>
+    </main>
+  </body>
+</html>

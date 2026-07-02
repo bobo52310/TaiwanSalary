@@ -1,0 +1,460 @@
+{
+  "108": {
+    "sii": {
+      "official": null,
+      "companyCount": 853,
+      "medianP25": 512,
+      "medianP50": 652,
+      "medianP75": 848,
+      "medianP90": 1105
+    },
+    "otc": {
+      "official": null,
+      "companyCount": 704,
+      "medianP25": 488,
+      "medianP50": 600,
+      "medianP75": 727,
+      "medianP90": 936
+    },
+    "all": {
+      "official": null,
+      "companyCount": 1557,
+      "medianP25": 501,
+      "medianP50": 625,
+      "medianP75": 799,
+      "medianP90": 1019
+    }
+  },
+  "109": {
+    "sii": {
+      "official": null,
+      "companyCount": 864,
+      "medianP25": 537,
+      "medianP50": 671,
+      "medianP75": 863,
+      "medianP90": 1127
+    },
+    "otc": {
+      "official": null,
+      "companyCount": 724,
+      "medianP25": 501,
+      "medianP50": 609,
+      "medianP75": 762,
+      "medianP90": 970
+    },
+    "all": {
+      "official": null,
+      "companyCount": 1588,
+      "medianP25": 516,
+      "medianP50": 647,
+      "medianP75": 821,
+      "medianP90": 1059
+    }
+  },
+  "110": {
+    "sii": {
+      "official": {
+        "label": "全體上市公司合計",
+        "totalPayrollK": 1318862822,
+        "employees": 1080478,
+        "avgK": 1221,
+        "rawCells": [
+          "全體上市公司合計",
+          "1,318,862,822",
+          "1,080,478",
+          "1,221",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-"
+        ]
+      },
+      "companyCount": 881,
+      "medianP25": 564,
+      "medianP50": 713,
+      "medianP75": 933,
+      "medianP90": 1205
+    },
+    "otc": {
+      "official": {
+        "label": "全體上櫃公司合計",
+        "totalPayrollK": 158279785,
+        "employees": 180853,
+        "avgK": 875,
+        "rawCells": [
+          "全體上櫃公司合計",
+          "158,279,785",
+          "180,853",
+          "875",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-"
+        ]
+      },
+      "companyCount": 754,
+      "medianP25": 528,
+      "medianP50": 635,
+      "medianP75": 799,
+      "medianP90": 1069
+    },
+    "all": {
+      "official": {
+        "label": "全體上市櫃公司合計(推算)",
+        "totalPayrollK": 1477142607,
+        "employees": 1261331,
+        "avgK": 1171,
+        "rawCells": []
+      },
+      "companyCount": 1635,
+      "medianP25": 545,
+      "medianP50": 668,
+      "medianP75": 867,
+      "medianP90": 1155
+    }
+  },
+  "111": {
+    "sii": {
+      "official": {
+        "label": "全體上市公司合計",
+        "totalPayrollK": 1402182102,
+        "employees": 1102517,
+        "avgK": 1272,
+        "rawCells": [
+          "全體上市公司合計",
+          "1,402,182,102",
+          "1,102,517",
+          "1,272",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-"
+        ]
+      },
+      "companyCount": 897,
+      "medianP25": 569,
+      "medianP50": 717,
+      "medianP75": 953,
+      "medianP90": 1255
+    },
+    "otc": {
+      "official": {
+        "label": "全體上櫃公司合計",
+        "totalPayrollK": 170244697,
+        "employees": 189229,
+        "avgK": 900,
+        "rawCells": [
+          "全體上櫃公司合計",
+          "170,244,697",
+          "189,229",
+          "900",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-"
+        ]
+      },
+      "companyCount": 775,
+      "medianP25": 530,
+      "medianP50": 649,
+      "medianP75": 809,
+      "medianP90": 1079
+    },
+    "all": {
+      "official": {
+        "label": "全體上市櫃公司合計(推算)",
+        "totalPayrollK": 1572426799,
+        "employees": 1291746,
+        "avgK": 1217,
+        "rawCells": []
+      },
+      "companyCount": 1672,
+      "medianP25": 548,
+      "medianP50": 685,
+      "medianP75": 887,
+      "medianP90": 1177
+    }
+  },
+  "112": {
+    "sii": {
+      "official": {
+        "label": "全體上市公司合計",
+        "totalPayrollK": 1383027664,
+        "employees": 1122169,
+        "avgK": 1232,
+        "rawCells": [
+          "全體上市公司合計",
+          "1,383,027,664",
+          "1,122,169",
+          "1,232",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-"
+        ]
+      },
+      "companyCount": 922,
+      "medianP25": 569,
+      "medianP50": 730,
+      "medianP75": 961,
+      "medianP90": 1229
+    },
+    "otc": {
+      "official": {
+        "label": "全體上櫃公司合計",
+        "totalPayrollK": 170986598,
+        "employees": 195633,
+        "avgK": 874,
+        "rawCells": [
+          "全體上櫃公司合計",
+          "170,986,598",
+          "195,633",
+          "874",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-"
+        ]
+      },
+      "companyCount": 789,
+      "medianP25": 543,
+      "medianP50": 665,
+      "medianP75": 812,
+      "medianP90": 1045
+    },
+    "all": {
+      "official": {
+        "label": "全體上市櫃公司合計(推算)",
+        "totalPayrollK": 1554014262,
+        "employees": 1317802,
+        "avgK": 1179,
+        "rawCells": []
+      },
+      "companyCount": 1711,
+      "medianP25": 556,
+      "medianP50": 691,
+      "medianP75": 893,
+      "medianP90": 1156
+    }
+  },
+  "113": {
+    "sii": {
+      "official": {
+        "label": "全體上市公司合計",
+        "totalPayrollK": 1536254181,
+        "employees": 1133400,
+        "avgK": 1355,
+        "rawCells": [
+          "全體上市公司合計",
+          "1,536,254,181",
+          "1,133,400",
+          "1,355",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-"
+        ]
+      },
+      "companyCount": 951,
+      "medianP25": 603,
+      "medianP50": 762,
+      "medianP75": 990,
+      "medianP90": 1271
+    },
+    "otc": {
+      "official": {
+        "label": "全體上櫃公司合計",
+        "totalPayrollK": 185394329,
+        "employees": 199471,
+        "avgK": 929,
+        "rawCells": [
+          "全體上櫃公司合計",
+          "185,394,329",
+          "199,471",
+          "929",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-"
+        ]
+      },
+      "companyCount": 816,
+      "medianP25": 569,
+      "medianP50": 681,
+      "medianP75": 870,
+      "medianP90": 1086
+    },
+    "all": {
+      "official": {
+        "label": "全體上市櫃公司合計(推算)",
+        "totalPayrollK": 1721648510,
+        "employees": 1332871,
+        "avgK": 1292,
+        "rawCells": []
+      },
+      "companyCount": 1767,
+      "medianP25": 584,
+      "medianP50": 713,
+      "medianP75": 929,
+      "medianP90": 1202
+    }
+  },
+  "114": {
+    "sii": {
+      "official": {
+        "label": "全體上市公司合計",
+        "totalPayrollK": 1685309042,
+        "employees": 1164410,
+        "avgK": 1447,
+        "rawCells": [
+          "全體上市公司合計",
+          "1,685,309,042",
+          "1,164,410",
+          "1,447",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-"
+        ]
+      },
+      "companyCount": 978,
+      "medianP25": 623,
+      "medianP50": 782,
+      "medianP75": 1018,
+      "medianP90": 1335
+    },
+    "otc": {
+      "official": {
+        "label": "全體上櫃公司合計",
+        "totalPayrollK": 201707217,
+        "employees": 209498,
+        "avgK": 963,
+        "rawCells": [
+          "全體上櫃公司合計",
+          "201,707,217",
+          "209,498",
+          "963",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          "-"
+        ]
+      },
+      "companyCount": 848,
+      "medianP25": 578,
+      "medianP50": 702,
+      "medianP75": 893,
+      "medianP90": 1110
+    },
+    "all": {
+      "official": {
+        "label": "全體上市櫃公司合計(推算)",
+        "totalPayrollK": 1887016259,
+        "employees": 1373908,
+        "avgK": 1373,
+        "rawCells": []
+      },
+      "companyCount": 1826,
+      "medianP25": 599,
+      "medianP50": 734,
+      "medianP75": 953,
+      "medianP90": 1240
+    }
+  }
+}
