@@ -44,12 +44,12 @@ src/
 需求:Node.js ≥ 22.12
 
 ```bash
-npm install
-npm run dev        # http://localhost:4321
-npm run build      # 產出 dist/(約 1,889 頁,~3 秒)
-npm run preview    # 本地預覽 build 結果
-npm run lint       # astro check
-npm run og:build   # 重新產出個股社群分享卡(需系統有 rsvg-convert 與 magick)
+pnpm install
+pnpm dev        # http://localhost:4321
+pnpm build      # 產出 dist/(約 1,889 頁,~3 秒)
+pnpm preview    # 本地預覽 build 結果
+pnpm lint       # astro check
+pnpm og:build   # 重新產出個股社群分享卡(需系統有 rsvg-convert 與 magick)
 ```
 
 > 分享卡與 logo 是 **本地產生後 commit 進 repo** 的靜態檔(`public/og/`、`public/logos/`)—— Cloudflare Pages 建置環境沒有 `rsvg-convert`,故不在 `astro build` 期間產生,與現有的 `og-default.png` 同樣做法。
@@ -59,10 +59,10 @@ npm run og:build   # 重新產出個股社群分享卡(需系統有 rsvg-convert
 上市櫃公司依規定於每年 6 月底前申報前一年度薪資資訊。年度更新流程:
 
 ```bash
-npm run data:fetch -- --year 115      # 抓上市+上櫃(自動間隔 90 秒防限流)
-npm run data:parse -- --all           # 解析(若 MOPS 改版面會 loud-fail,依錯誤訊息補 scripts/lib/layouts.ts)
-npm run data:build                    # 合併 + 驗證(台積電 spot-check、列數、代號唯一性)
-npm run og:build                      # 依新數據重新產出前 100 名分享卡(排名/數字會變動)
+pnpm data:fetch -- --year 115      # 抓上市+上櫃(自動間隔 90 秒防限流)
+pnpm data:parse -- --all           # 解析(若 MOPS 改版面會 loud-fail,依錯誤訊息補 scripts/lib/layouts.ts)
+pnpm data:build                    # 合併 + 驗證(台積電 spot-check、列數、代號唯一性)
+pnpm og:build                      # 依新數據重新產出前 100 名分享卡(排名/數字會變動)
 git diff --stat                       # 目視檢查
 git commit && git push                # CF Pages 自動部署
 ```
@@ -76,7 +76,7 @@ git commit && git push                # CF Pages 自動部署
 - **真實 logo**:`public/logos/{代號}.png` 存在時使用。由 `fetch-logos.ts` 從 Wikimedia 取得(優先 Wikidata `P154` 屬性,fallback 為條目 infobox 的 logo 檔),目前收錄約 34 家知名公司
 - **字母磚 fallback**:其餘公司以公司名首字 + 依代號決定的顏色產生方塊,永遠有一致的品牌標記
 
-新增/更新 logo:把圖檔放進 `public/logos/{代號}.png`(或 svg/webp),再跑 `npm run og:build` 重新產卡。`fetch-logos.ts` 具冪等性(已存在的代號會跳過),可重跑補齊;`--force` 可強制重抓。logo 為各公司商標,依編輯性/指示性合理使用原則呈現於該公司資訊旁。
+新增/更新 logo:把圖檔放進 `public/logos/{代號}.png`(或 svg/webp),再跑 `pnpm og:build` 重新產卡。`fetch-logos.ts` 具冪等性(已存在的代號會跳過),可重跑補齊;`--force` 可強制重抓。logo 為各公司商標,依編輯性/指示性合理使用原則呈現於該公司資訊旁。
 
 > 需要系統安裝 `librsvg`(`rsvg-convert`)與 `ImageMagick`(`magick`):`brew install librsvg imagemagick`。
 
@@ -87,7 +87,7 @@ git commit && git push                # CF Pages 自動部署
 1. Cloudflare Dashboard → Workers & Pages → Create → Pages → **Connect to Git**,選本 repo
 2. Build 設定:
    - Framework preset:**Astro**
-   - Build command:`npm install && npm run build`
+   - Build command:`pnpm install --frozen-lockfile && pnpm build`
    - Build output directory:`dist`
 3. 環境變數(Production + Preview):`NODE_VERSION = 22`
 4. Deploy。之後每次 push `main` 自動部署

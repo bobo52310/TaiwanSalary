@@ -18,27 +18,26 @@ jobs:
           shellcheck --version
           shellcheck $(git ls-files '*.sh')
 
+      - name: Setup pnpm
+        if: ${{ hashFiles('package.json') != '' }}
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node
         if: ${{ hashFiles('package.json') != '' }}
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
-          cache: npm
+          cache: pnpm
 
       - name: Install (Node)
         if: ${{ hashFiles('package.json') != '' }}
-        run: |
-          if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then
-            npm ci
-          else
-            npm install
-          fi
+        run: pnpm install --frozen-lockfile
 
       - name: Lint (Node)
         if: ${{ hashFiles('package.json') != '' }}
-        run: npm run lint --if-present
+        run: pnpm run lint --if-present
 
       - name: Build (Node)
         if: ${{ hashFiles('package.json') != '' }}
-        run: npm run build --if-present
+        run: pnpm run build --if-present
 
