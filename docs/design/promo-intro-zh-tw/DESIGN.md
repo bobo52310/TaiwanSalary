@@ -37,7 +37,7 @@
 ## 真實性與定位
 - 產品畫面一律真實擷取（`scripts/capture.cjs`，dark mode、2x），不手刻假 UI；疊圖對位座標來自 `assets/shots/manifest.json`
   （搜尋框 `#q`、台積電那一列、趨勢線各點）。S3 的灰色下拉選單是示意，不模仿公開資訊觀測站外觀。
-- **截圖要從 `git archive HEAD` 的快照建站拍**：工作區首頁已加「33 秒看懂本站」按鈕，直接從 repo 拍 home 會拍到它。
+- **截圖要從 `git archive HEAD` 的快照建站拍**：工作區首頁已加「34 秒看懂本站」按鈕，直接從 repo 拍 home 會拍到它。
   快照放 scratchpad `site/`，`node_modules/.bin/astro build && astro preview --port 4329`，再 `BASE_URL=http://localhost:4329 npm run capture`。
 - 畫面上每個數字都由 `index.html` 內嵌的 `assets/data.json`（`<script id="promo-data">`）在執行時填入；
   `npm run data` 會重算 data.json 並重新嵌入。不手打數字。

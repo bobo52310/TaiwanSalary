@@ -1,0 +1,12 @@
+{
+  "name": "taiwan-salary-intro-promo-en",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "capture": "node scripts/capture.cjs",
+    "data": "node scripts/extract-data.cjs",
+    "dev": "npx --yes hyperframes@0.9.15 preview",
+    "check": "npx --yes hyperframes@0.9.15 lint && npx --yes hyperframes@0.9.15 validate && npx --yes hyperframes@0.9.15 inspect",
+    "render": "npx --yes hyperframes@0.9.15 render --quality standard -o renders/intro-en.mp4"
+  }
+}

@@ -12,7 +12,7 @@
 
 ![哪家給最多 簡介動畫](docs/promo/intro-zh-tw.gif)
 
-[下載 MP4](docs/promo/intro-zh-tw.mp4) · 原始檔(HyperFrames composition):[`docs/design/promo-intro-zh-tw/`](docs/design/promo-intro-zh-tw/)
+**[🎞️ English version](docs/promo/intro-en.gif)** · [下載 MP4](docs/promo/intro-zh-tw.mp4) · [Download MP4 (EN)](docs/promo/intro-en.mp4) · 原始檔(HyperFrames composition):[`docs/design/promo-intro-zh-tw/`](docs/design/promo-intro-zh-tw/) · [`docs/design/promo-intro/`](docs/design/promo-intro/)
 
 > 畫面為本站實際介面(由原始檔內的 `scripts/capture.cjs` 以 puppeteer 實拍),數字取自 repo 內的民國 114 年度資料;官方查詢頁的下拉選單為示意。
 
