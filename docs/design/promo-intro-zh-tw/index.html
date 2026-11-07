@@ -1,0 +1,758 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=Noto+Sans+TC:wght@500;700;900&display=block"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "PingFang TC"; src: local("PingFang TC"); }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #0d0d0d;
+      }
+
+      /* Site dark-mode tokens (src/styles/global.css). One accent only. */
+      :root {
+        --bg: #0d0d0d;
+        --surface: #1a1a19;
+        --surface-alt: #201f1e;
+        --text: #ffffff;
+        --text-secondary: #c3c2b7;
+        --text-muted: #898781;
+        --border: #2c2c2a;
+        --border-strong: #383835;
+        --accent: #3987e5;
+        --brand-tile: #2a78d6;
+        --f: "Inter", "PingFang TC", "Noto Sans TC", sans-serif;
+      }
+
+      body { font-family: var(--f); color: var(--text); }
+
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--bg);
+      }
+
+      .scene { position: absolute; inset: 0; width: 1920px; height: 1080px; }
+
+      .hl {
+        background: linear-gradient(120deg, #8ab8f2 0%, #3987e5 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .center { position: absolute; left: 0; width: 1920px; text-align: center; }
+      .h2 { font-size: 96px; font-weight: 700; line-height: 1.16; white-space: nowrap; color: var(--text); }
+      .lead { font-size: 56px; font-weight: 600; line-height: 1.3; white-space: nowrap; color: var(--text); }
+      .eyebrow { font-size: 28px; font-weight: 600; letter-spacing: 0.06em; color: var(--text-secondary); white-space: nowrap; }
+
+      /* screenshot crops: a clipping box + the PNG positioned inside (sized by width, never upscaled) */
+      .crop { position: absolute; overflow: hidden; }
+      .crop img { position: absolute; display: block; }
+
+      /* ================= S1 HOOK: the billboard number ================= */
+      #s1-glow {
+        position: absolute;
+        left: 260px; top: 120px;
+        width: 1400px; height: 640px;
+        background: radial-gradient(closest-side, rgba(57, 135, 229, 0.1), rgba(57, 135, 229, 0));
+        opacity: 0;
+      }
+      #s1-eyebrow { top: 150px; font-size: 40px; font-weight: 600; letter-spacing: 0.04em; color: var(--text-secondary); }
+      #s1-num {
+        top: 226px;
+        font-size: 300px;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.02em;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+        color: var(--text);
+        opacity: 0;
+      }
+      #s1-num::after {
+        content: attr(data-suffix);
+        position: relative;
+        top: -8px;
+        margin-left: 18px;
+        font-size: 150px;
+        font-weight: 700;
+        letter-spacing: 0;
+        color: var(--text);
+      }
+      #s1-q { top: 610px; font-size: 104px; opacity: 0; }
+      #ground {
+        position: absolute;
+        left: 80px; top: 958px;
+        width: 1760px; height: 2px;
+        background: var(--border);
+        opacity: 0;
+      }
+      #you { position: absolute; left: 951px; top: 940px; width: 18px; height: 18px; opacity: 0; }
+      #you-dot { position: absolute; inset: 0; border-radius: 50%; background: var(--text); }
+      #you-ring {
+        position: absolute;
+        left: -9px; top: -9px;
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        border: 3px solid var(--accent);
+        opacity: 0;
+      }
+      #you-label {
+        position: absolute;
+        left: 30px; top: -12px;
+        font-size: 30px;
+        font-weight: 600;
+        line-height: 1.2;
+        white-space: nowrap;
+        color: var(--text);
+      }
+      #s1-src {
+        position: absolute;
+        right: 80px; top: 990px;
+        font-size: 24px;
+        font-weight: 500;
+        white-space: nowrap;
+        color: var(--text-secondary);
+        opacity: 0;
+      }
+
+      /* ================= S2 TWIST: the real histogram ================= */
+      #s2-h { top: 56px; }
+      #s2-lead { top: 190px; opacity: 0; }
+      #chart { position: absolute; left: 150px; top: 300px; width: 1620px; height: 620px; }
+      #bars-base, #bars-hi { position: absolute; left: 0; top: 0; width: 1620px; height: 560px; }
+      #bars-hi { clip-path: inset(0px 1620px 0px 0px); }
+      .bar { position: absolute; width: 84px; border-radius: 6px 6px 0 0; transform-origin: 50% 100%; }
+      #bars-base .bar { background: #5d5c57; }
+      #bars-hi .bar { background: var(--accent); }
+      #baseline { position: absolute; left: 0; top: 560px; width: 1620px; height: 2px; background: var(--border-strong); }
+      .tick {
+        position: absolute;
+        top: 576px;
+        width: 120px;
+        margin-left: -60px;
+        text-align: center;
+        font-size: 26px;
+        font-weight: 500;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+        color: var(--text-secondary);
+      }
+      #ticks { opacity: 0; }
+      #tail { position: absolute; top: 330px; height: 90px; opacity: 0; }
+      #tail-label {
+        position: absolute;
+        left: 0; right: 0; top: 0;
+        text-align: center;
+        font-size: 38px;
+        font-weight: 600;
+        white-space: nowrap;
+        color: var(--text-secondary);
+      }
+      #tail-brace {
+        position: absolute;
+        left: 0; right: 0; top: 62px;
+        height: 24px;
+        border: 3px solid var(--text-muted);
+        border-bottom: 0;
+        border-radius: 6px 6px 0 0;
+      }
+      #p50 { position: absolute; left: 0; top: 0; width: 0; height: 560px; opacity: 0; }
+      #p50-line {
+        position: absolute;
+        left: -2px; top: 76px;
+        width: 4px; height: 484px;
+        background: var(--accent);
+        box-shadow: 0 0 18px rgba(57, 135, 229, 0.6);
+      }
+      #p50-pill {
+        position: absolute;
+        left: 0; top: 0;
+        height: 64px;
+        padding: 0 26px;
+        display: flex;
+        align-items: center;
+        border-radius: 32px;
+        background: var(--surface);
+        border: 3px solid var(--accent);
+        font-size: 36px;
+        font-weight: 700;
+        white-space: nowrap;
+        color: var(--text);
+        opacity: 0;
+      }
+      #s2-note { top: 940px; font-size: 26px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; opacity: 0; }
+
+      /* ================= S3 MECHANIC: stairs -> one search box ================= */
+      #s3-eyebrow { top: 72px; font-size: 36px; letter-spacing: 0.04em; }
+      #s3-h { top: 128px; }
+      #s3-lead { top: 280px; opacity: 0; }
+      .dd {
+        position: absolute;
+        width: 440px; height: 100px;
+        border-radius: 14px;
+        background: var(--surface);
+        border: 2px solid var(--border-strong);
+        opacity: 0;
+        overflow: hidden;
+      }
+      .dd-t {
+        position: absolute;
+        left: 36px; top: 0; bottom: 0;
+        display: flex;
+        align-items: center;
+        font-size: 44px;
+        font-weight: 600;
+        white-space: nowrap;
+        color: var(--text-secondary);
+      }
+      .dd-t::after {
+        content: "";
+        margin-left: 22px;
+        border-left: 13px solid transparent;
+        border-right: 13px solid transparent;
+        border-top: 15px solid var(--text-muted);
+      }
+      .dd.btn { width: 300px; background: var(--surface-alt); }
+      .dd.btn .dd-t { left: 0; right: 0; justify-content: center; color: var(--text); }
+      .dd.btn .dd-t::after { display: none; }
+      #slot {
+        position: absolute;
+        border-radius: 10px;
+        background: var(--surface);
+        border: 2px solid var(--border-strong);
+        opacity: 0;
+      }
+      #sq { position: absolute; left: 80px; top: 290px; width: 1760px; height: 633px; opacity: 0; }
+      #sq img { position: absolute; left: 0; top: 0; width: 1760px; display: block; }
+      #sq1, #sq2 { opacity: 0; }
+      #caret { position: absolute; left: 0; top: 43px; width: 3px; height: 31px; background: var(--text); opacity: 0; }
+      #sq-row {
+        position: absolute;
+        left: 20px; top: 160px;
+        width: 1720px; height: 68px;
+        border-radius: 12px;
+        border: 4px solid var(--accent);
+        box-shadow: 0 0 36px rgba(57, 135, 229, 0.45);
+        opacity: 0;
+      }
+      #s3-h2 { top: 140px; opacity: 0; }
+
+      /* ================= S4 RANGE: your company's seven years ================= */
+      #s4-h { top: 56px; }
+      #chip { left: 80px; top: 206px; opacity: 0; }
+      #trend-wrap { position: absolute; left: 80px; top: 384px; width: 1760px; height: 544px; transform-origin: 0 0; }
+      #trend { left: 0; top: 0; clip-path: inset(0% 100% 0% 0%); }
+      #pen {
+        position: absolute;
+        left: -15px; top: -15px;
+        width: 30px; height: 30px;
+        border-radius: 50%;
+        background: var(--accent);
+        border: 4px solid var(--text);
+        box-shadow: 0 0 28px 6px rgba(57, 135, 229, 0.7);
+        opacity: 0;
+      }
+      .card { opacity: 0; border-radius: 18px; }
+      #strip {
+        position: absolute;
+        left: 0; top: 836px;
+        width: 1920px; height: 110px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 72px;
+        opacity: 0;
+      }
+      .st-n {
+        font-size: 88px;
+        font-weight: 800;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.01em;
+        white-space: nowrap;
+        color: var(--text);
+      }
+      .st-n::before {
+        content: attr(data-prefix);
+        margin-right: 14px;
+        font-size: 44px;
+        font-weight: 600;
+        letter-spacing: 0;
+        color: var(--text-secondary);
+      }
+      .st-n::after {
+        content: attr(data-suffix);
+        margin-left: 14px;
+        font-size: 44px;
+        font-weight: 600;
+        letter-spacing: 0;
+        color: var(--text-secondary);
+      }
+      .st-sep { width: 2px; height: 76px; background: var(--border-strong); }
+
+      /* ================= S5 HEART ================= */
+      .beat { position: absolute; left: 0; top: 470px; width: 1920px; text-align: center; font-size: 104px; font-weight: 700; line-height: 1.16; white-space: nowrap; opacity: 0; }
+      #lockup-glow {
+        position: absolute;
+        left: 360px; top: 120px;
+        width: 1200px; height: 560px;
+        background: radial-gradient(closest-side, rgba(57, 135, 229, 0.1), rgba(57, 135, 229, 0));
+        opacity: 0;
+      }
+      #lockup {
+        position: absolute;
+        left: 0; top: 0;
+        width: 1920px; height: 1010px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      #brand-row { display: flex; align-items: center; gap: 46px; opacity: 0; }
+      #tile {
+        width: 176px; height: 176px;
+        border-radius: 38px;
+        background: var(--brand-tile);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 112px;
+        font-weight: 700;
+        line-height: 1;
+        color: #ffffff;
+        flex: none;
+      }
+      #wordmark { font-size: 188px; font-weight: 800; line-height: 1.1; letter-spacing: 0.01em; white-space: nowrap; color: var(--text); }
+      #subtitle { margin-top: 22px; font-size: 56px; font-weight: 600; letter-spacing: 0.04em; white-space: nowrap; color: var(--text-secondary); opacity: 0; }
+      #url {
+        margin-top: 44px;
+        height: 88px;
+        padding: 0 46px;
+        display: flex;
+        align-items: center;
+        border-radius: 44px;
+        background: var(--surface);
+        border: 3px solid var(--accent);
+        font-size: 50px;
+        font-weight: 600;
+        white-space: nowrap;
+        color: var(--text);
+        opacity: 0;
+      }
+      #closing { margin-top: 70px; font-size: 58px; font-weight: 700; white-space: nowrap; color: var(--text); opacity: 0; }
+      #fine { top: 990px; font-size: 26px; font-weight: 500; letter-spacing: 0.02em; white-space: nowrap; color: var(--text-secondary); opacity: 0; }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="34"
+      data-width="1920"
+      data-height="1080"
+    >
+      <!-- =========================================================
+           S1 HOOK - the billboard number vs. a tiny "you"
+           ========================================================= -->
+      <section id="s1" class="scene">
+        <div id="s1-glow"></div>
+        <div id="s1-eyebrow" class="center">民國 114 年度・上市公司員工平均年薪</div>
+        <div id="s1-num" class="center" data-suffix="萬">144.7</div>
+        <div id="s1-q" class="center h2">⋯⋯你有嗎？</div>
+        <div id="ground"></div>
+        <div id="you">
+          <div id="you-ring"></div>
+          <div id="you-dot"></div>
+          <div id="you-label" data-layout-allow-overflow>你</div>
+        </div>
+        <div id="s1-src">全體上市公司合計：總薪資 ÷ 1,164,410 人</div>
+      </section>
+
+      <!-- =========================================================
+           S2 TWIST - the average lies (real 114 sii histogram)
+           ========================================================= -->
+      <section id="s2" class="scene" style="opacity: 0; display: none;">
+        <div id="s2-h" class="center h2">平均，會被少數高薪拉高。</div>
+        <div id="s2-lead" class="center lead">半數上市公司的薪資中位數，在 <span id="p50-hl" class="hl">78.2 萬</span> 以下。</div>
+        <div id="chart">
+          <div id="bars-base"></div>
+          <div id="bars-hi"></div>
+          <div id="baseline"></div>
+          <div id="ticks"></div>
+          <div id="tail">
+            <div id="tail-label">少數高薪公司</div>
+            <div id="tail-brace"></div>
+          </div>
+          <div id="p50">
+            <div id="p50-line"></div>
+            <div id="p50-pill">P50　78.2 萬</div>
+          </div>
+        </div>
+        <div id="s2-note" class="center">978 家上市公司・各公司非主管全時員工薪資中位數・民國 114 年度</div>
+      </section>
+
+      <!-- =========================================================
+           S3 MECHANIC - public != findable; now just type the name
+           ========================================================= -->
+      <section id="s3" class="scene" style="opacity: 0; display: none;">
+        <div id="s3a">
+          <div id="s3-eyebrow" class="center eyebrow">公開資訊觀測站</div>
+          <div id="s3-h" class="center h2">這些數字，每年都公開。</div>
+          <div id="s3-lead" class="center lead">只是要先選年度、選市場、選產業⋯⋯</div>
+        </div>
+        <div class="dd" id="dd1"><div class="dd-t">年度</div></div>
+        <div class="dd" id="dd2"><div class="dd-t">市場別</div></div>
+        <div class="dd" id="dd3"><div class="dd-t">產業別</div></div>
+        <div class="dd btn" id="dd4"><div class="dd-t">查詢</div></div>
+        <div id="slot"></div>
+        <div id="sq">
+          <img id="sq0" src="assets/shots/search-0.png" alt="" />
+          <img id="sq1" src="assets/shots/search-1.png" alt="" data-layout-allow-overflow />
+          <img id="sq2" src="assets/shots/search-2.png" alt="" />
+          <div id="sq-row"></div>
+          <div id="caret"></div>
+        </div>
+        <div id="s3-h2" class="center h2">現在，<span class="hl">打公司名就好</span>。</div>
+      </section>
+
+      <!-- =========================================================
+           S4 RANGE - your company's seven years (台積電 2330, real pages)
+           ========================================================= -->
+      <section id="s4" class="scene" style="opacity: 0; display: none;">
+        <div id="s4-h" class="center h2">你公司這七年，有沒有<span class="hl">替你加薪</span>？</div>
+        <div id="chip" class="crop"><img id="img-head" src="assets/shots/company-head.png" alt="" data-layout-allow-overflow /></div>
+        <div id="trend-wrap">
+          <div id="trend" class="crop"><img id="img-trend" src="assets/shots/company-trend.png" alt="" data-layout-allow-overflow /></div>
+          <div id="pen"></div>
+        </div>
+        <div id="card-g" class="crop card" data-layout-allow-overflow><img src="assets/shots/company-gender.png" alt="" data-layout-allow-overflow /></div>
+        <div id="card-p" class="crop card" data-layout-allow-overflow><img src="assets/shots/company-pctl.png" alt="" data-layout-allow-overflow /></div>
+        <div id="strip">
+          <div id="st-co" class="st-n" data-suffix="家公司">1,847</div>
+          <div class="st-sep"></div>
+          <div id="st-ind" class="st-n" data-suffix="個產業">35</div>
+          <div class="st-sep"></div>
+          <div id="st-yr" class="st-n" data-prefix="民國" data-suffix="年">108–114</div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           S5 HEART - two beats, then the wordmark
+           ========================================================= -->
+      <section id="s5" class="scene" style="opacity: 0; display: none;">
+        <div id="s5-a" class="beat">公開，不等於查得到。</div>
+        <div id="s5-b" class="beat">所以我把它<span class="hl">整理好了</span>。</div>
+        <div id="lockup-glow"></div>
+        <div id="lockup">
+          <div id="brand-row">
+            <div id="tile">薪</div>
+            <div id="wordmark">哪家給最多</div>
+          </div>
+          <div id="subtitle">台灣上市櫃薪資查詢</div>
+          <div id="url">salary.bobochen.dev</div>
+          <div id="closing">打上你公司的名字，看看你在中位數的哪一邊。</div>
+        </div>
+        <div id="fine" class="center">資料：公開資訊觀測站・開源 MIT・非官方</div>
+      </section>
+    </div>
+
+    <!-- assets/data.json, embedded verbatim by `npm run data` (scripts/extract-data.cjs). Every number on screen is read from here. -->
+    <script id="promo-data" type="application/json">
+{"_about":"Generated by scripts/extract-data.cjs from src/data/*.json. K = 仟元, Wan = 萬元. Do not edit by hand; re-run the script.","generatedFrom":{"dataGeneratedAt":"2026-07-02T12:55:21.510Z","latestYear":114},"sii114Hist":{"year":114,"market":"sii","unit":"medianK (仟元); 100 仟元 = 10 萬 per bin","binRule":"Bin width 100 仟元 (10 萬). First bin folds everything below 400 仟元 (<40 萬); last bin folds everything at or above 2000 仟元 (>=200 萬). Every bin is lower-inclusive, upper-exclusive.","lowK":400,"highK":2000,"binWidthK":100,"total":978,"minMedianK":354,"maxMedianK":3552,"recomputedMedianK":782,"p50Bin":4,"bins":[{"minK":null,"maxK":400,"label":"<40","minWan":null,"maxWan":40,"count":1},{"minK":400,"maxK":500,"label":"40-50","minWan":40,"maxWan":50,"count":48},{"minK":500,"maxK":600,"label":"50-60","minWan":50,"maxWan":60,"count":152},{"minK":600,"maxK":700,"label":"60-70","minWan":60,"maxWan":70,"count":188},{"minK":700,"maxK":800,"label":"70-80","minWan":70,"maxWan":80,"count":124},{"minK":800,"maxK":900,"label":"80-90","minWan":80,"maxWan":90,"count":126},{"minK":900,"maxK":1000,"label":"90-100","minWan":90,"maxWan":100,"count":82},{"minK":1000,"maxK":1100,"label":"100-110","minWan":100,"maxWan":110,"count":57},{"minK":1100,"maxK":1200,"label":"110-120","minWan":110,"maxWan":120,"count":48},{"minK":1200,"maxK":1300,"label":"120-130","minWan":120,"maxWan":130,"count":45},{"minK":1300,"maxK":1400,"label":"130-140","minWan":130,"maxWan":140,"count":28},{"minK":1400,"maxK":1500,"label":"140-150","minWan":140,"maxWan":150,"count":19},{"minK":1500,"maxK":1600,"label":"150-160","minWan":150,"maxWan":160,"count":18},{"minK":1600,"maxK":1700,"label":"160-170","minWan":160,"maxWan":170,"count":9},{"minK":1700,"maxK":1800,"label":"170-180","minWan":170,"maxWan":180,"count":10},{"minK":1800,"maxK":1900,"label":"180-190","minWan":180,"maxWan":190,"count":2},{"minK":1900,"maxK":2000,"label":"190-200","minWan":190,"maxWan":200,"count":3},{"minK":2000,"maxK":null,"label":">=200","minWan":200,"maxWan":null,"count":18}]},"sii114":{"year":114,"companyCount":978,"medianP25":623,"medianP50":782,"medianP75":1018,"medianP90":1335,"officialLabel":"全體上市公司合計","officialAvgK":1447,"officialEmployees":1164410},"all114":{"year":114,"companyCount":1826,"medianP50":734,"companiesWithYear114":1826,"totalCompanies":1847,"byMarket":{"sii":987,"otc":860},"byYear":{"108":1557,"109":1588,"110":1635,"111":1672,"112":1711,"113":1767,"114":1826},"firstYear":108,"lastYear":114,"yearSpan":7,"firstYearCe":2019,"lastYearCe":2025},"tsmc":{"code":"2330","name":"台積電","industry":"半導體業","note":"medianChangePct is null in the first year (no prior-year median).","years":[{"year":108,"ce":2019,"medianK":1596,"medianWan":159.6,"avgK":1981,"avgWan":198.1,"medianChangePct":null},{"year":109,"ce":2020,"medianK":1819,"medianWan":181.9,"avgK":2377,"avgWan":237.7,"medianChangePct":13.97},{"year":110,"ce":2021,"medianK":1851,"medianWan":185.1,"avgK":2425,"avgWan":242.5,"medianChangePct":1.76},{"year":111,"ce":2022,"medianK":2435,"medianWan":243.5,"avgK":3167,"avgWan":316.7,"medianChangePct":31.55},{"year":112,"ce":2023,"medianK":2248,"medianWan":224.8,"avgK":2842,"avgWan":284.2,"medianChangePct":-7.68},{"year":113,"ce":2024,"medianK":2645,"medianWan":264.5,"avgK":3391,"avgWan":339.1,"medianChangePct":17.66},{"year":114,"ce":2025,"medianK":3162,"medianWan":316.2,"avgK":4072,"avgWan":407.2,"medianChangePct":19.55}]},"industryCount":35}
+    </script>
+    <!-- assets/shots/manifest.json boxes used for overlay alignment (image px of the 2x PNGs), copied by hand. -->
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+      const DATA = JSON.parse(document.getElementById("promo-data").textContent);
+      const HIST = DATA.sii114Hist;
+      const SII = DATA.sii114;
+      const ALL = DATA.all114;
+
+      const $ = (id) => document.getElementById(id);
+      const wan = (k) => (k / 10).toFixed(1); /* 仟元 -> 萬, one decimal */
+      const comma = (n) => Math.round(n).toLocaleString("en-US");
+
+      /* ---------- on-screen numbers, all from data.json ---------- */
+      $("s1-eyebrow").textContent = `民國 ${SII.year} 年度・上市公司員工平均年薪`;
+      $("s1-src").textContent = `${SII.officialLabel}：總薪資 ÷ ${comma(SII.officialEmployees)} 人`;
+      $("p50-hl").textContent = `${wan(SII.medianP50)} 萬`;
+      $("p50-pill").textContent = `P50　${wan(SII.medianP50)} 萬`;
+      $("s2-note").textContent = `${comma(HIST.total)} 家上市公司・各公司非主管全時員工薪資中位數・民國 ${HIST.year} 年度`;
+
+      /* ---------- screenshot crops (scale = rendered px per image px; all < 1, i.e. downscaled) ---------- */
+      const crop = (boxId, imgW, src, scale) => {
+        const box = $(boxId);
+        const img = box.querySelector("img");
+        box.style.width = src.w * scale + "px";
+        box.style.height = src.h * scale + "px";
+        img.style.width = imgW * scale + "px";
+        img.style.left = -src.x * scale + "px";
+        img.style.top = -src.y * scale + "px";
+      };
+      /* company-head 2304x706: logo + 台積電 (2330) + badges */
+      crop("chip", 2304, { x: 20, y: 74, w: 520, h: 216 }, 0.72);
+      /* company-trend 2304x840: plot only (y-unit label .. x-axis years), section heading dropped */
+      const TS = 1760 / 2304;
+      const TREND_Y0 = 96;
+      crop("trend", 2304, { x: 0, y: TREND_Y0, w: 2304, h: 712 }, TS);
+      /* gender / percentile cards 1170x530: the card itself */
+      const CS = 610 / 1110;
+      crop("card-g", 1170, { x: 30, y: 30, w: 1110, h: 469 }, CS);
+      crop("card-p", 1170, { x: 30, y: 30, w: 1110, h: 469 }, CS);
+      gsap.set("#card-g", { left: 1230, top: 206 });
+      gsap.set("#card-p", { left: 1230, top: 484 });
+
+      /* =====================================================================
+         S1 HOOK (0 - 5.4s)
+         ===================================================================== */
+      const numEl = $("s1-num");
+      const AVG = SII.officialAvgK / 10;
+      const fmtAvg = (v) => v.toFixed(1).padStart(5, " "); /* figure-space pad keeps the width steady */
+      numEl.textContent = fmtAvg(0);
+      const avg = { v: 0 };
+
+      tl.set("#s1", { display: "block", opacity: 1 }, 0);
+      tl.fromTo("#s1-eyebrow", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 0.1);
+      tl.to("#s1-glow", { opacity: 1, duration: 1.2, ease: "power1.out" }, 0.3);
+      tl.fromTo("#s1-num", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power2.out" }, 0.3);
+      tl.to(avg, { v: AVG, duration: 1.8, ease: "power3.out", onUpdate: () => { numEl.textContent = fmtAvg(avg.v); } }, 0.3);
+      tl.fromTo("#ground", { opacity: 0, scaleX: 0.2 }, { opacity: 1, scaleX: 1, duration: 0.8, ease: "power2.out" }, 0.6);
+      tl.fromTo("#you", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 1.0);
+      tl.to("#s1-src", { opacity: 1, duration: 0.4, ease: "power1.out" }, 1.4);
+      /* breath, then the question; the tiny "you" answers with a pulse */
+      tl.fromTo("#s1-q", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 2.6);
+      [2.75, 3.75].forEach((at) => {
+        tl.fromTo("#you-ring", { opacity: 0.9, scale: 0.6 }, { opacity: 0, scale: 2.6, duration: 0.95, ease: "power2.out", immediateRender: false }, at);
+      });
+
+      tl.to("#s1", { opacity: 0, duration: 0.4, ease: "power2.in" }, 5.0);
+      tl.set("#s1", { display: "none" }, 5.45);
+
+      /* =====================================================================
+         S2 TWIST (5.4 - 11.8s): real histogram, P50 sweep
+         ===================================================================== */
+      const BIN = 90; /* px per 10 萬 bin */
+      const BASE = 560; /* baseline y inside #chart */
+      const MAXH = 440;
+      const maxCount = Math.max(...HIST.bins.map((b) => b.count));
+      const baseBars = [];
+      HIST.bins.forEach((b, i) => {
+        const h = Math.max(3, (b.count / maxCount) * MAXH);
+        ["bars-base", "bars-hi"].forEach((layer) => {
+          const d = document.createElement("div");
+          d.className = "bar";
+          d.style.left = i * BIN + 3 + "px";
+          d.style.top = BASE - h + "px";
+          d.style.height = h + "px";
+          $(layer).appendChild(d);
+          if (layer === "bars-base") baseBars.push(d);
+        });
+      });
+      /* x ticks on bin edges: edge k sits between bin k-1 and bin k (bin 0 folds < lowK) */
+      for (let k = 1; k < HIST.bins.length; k += 2) {
+        const v = HIST.lowK / 10 + ((k - 1) * HIST.binWidthK) / 10;
+        const t = document.createElement("div");
+        t.className = "tick";
+        t.style.left = k * BIN + "px";
+        t.textContent = k === HIST.bins.length - 1 ? `${v} 萬` : `${v}`;
+        $("ticks").appendChild(t);
+      }
+      /* P50 position on the bin axis */
+      const P50K = SII.medianP50;
+      const p50Bin = HIST.bins.findIndex((b) => (b.minK == null || P50K >= b.minK) && (b.maxK == null || P50K < b.maxK));
+      const X50 = (p50Bin + (P50K - HIST.bins[p50Bin].minK) / HIST.binWidthK) * BIN;
+      /* long tail: bins >= 120 萬 */
+      const tailFrom = HIST.bins.findIndex((b) => b.minK != null && b.minK >= 1200);
+      gsap.set("#tail", { left: tailFrom * BIN + 3, width: (HIST.bins.length - tailFrom) * BIN - 6 });
+
+      const S2 = 5.4;
+      tl.set("#s2", { display: "block", opacity: 1 }, S2);
+      tl.fromTo("#s2-h", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, S2 + 0.15);
+      tl.fromTo("#baseline", { scaleX: 0 }, { scaleX: 1, duration: 0.5, ease: "power2.out", transformOrigin: "0% 50%" }, S2 + 0.4);
+      tl.fromTo(baseBars, { scaleY: 0 }, { scaleY: 1, duration: 0.5, ease: "power2.out", stagger: 0.05 }, S2 + 0.55);
+      tl.to("#ticks", { opacity: 1, duration: 0.4, ease: "power1.out" }, S2 + 0.8);
+      tl.to("#s2-note", { opacity: 1, duration: 0.4, ease: "power1.out" }, S2 + 1.0);
+      tl.fromTo("#tail", { opacity: 0, y: -14 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, S2 + 1.75);
+
+      /* the P50 line sweeps in from the left; the accent layer is revealed exactly behind it */
+      const SWEEP = S2 + 2.2;
+      const SWEEP_D = 1.25;
+      tl.set("#p50", { x: 0 }, SWEEP);
+      tl.to("#p50", { opacity: 1, duration: 0.2 }, SWEEP);
+      tl.to("#p50", { x: X50, duration: SWEEP_D, ease: "power2.inOut" }, SWEEP);
+      tl.fromTo("#bars-hi", { clipPath: "inset(0px 1620px 0px 0px)" }, { clipPath: `inset(0px ${1620 - X50}px 0px 0px)`, duration: SWEEP_D, ease: "power2.inOut" }, SWEEP);
+      tl.to(baseBars, { backgroundColor: "#383835", duration: 0.5, ease: "power1.out" }, SWEEP + SWEEP_D - 0.1);
+      gsap.set("#p50-pill", { xPercent: -50 });
+      tl.fromTo("#p50-pill", { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2)" }, SWEEP + SWEEP_D);
+      tl.fromTo("#s2-lead", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, SWEEP + SWEEP_D + 0.45);
+
+      tl.to("#s2", { opacity: 0, duration: 0.4, ease: "power2.in" }, 11.4);
+      tl.set("#s2", { display: "none" }, 11.85);
+
+      /* =====================================================================
+         S3 MECHANIC (11.8 - 19.8s)
+         ===================================================================== */
+      const S3 = 11.8;
+      /* stairs of grey dropdowns (a sketch, not MOPS' look) */
+      const STAIRS = [
+        ["#dd1", 360, 432, 440],
+        ["#dd2", 660, 556, 440],
+        ["#dd3", 960, 680, 440],
+        ["#dd4", 1260, 804, 300],
+      ];
+      STAIRS.forEach(([id, x, y]) => gsap.set(id, { left: x, top: y }));
+      /* landing slot = the real #q search box in search-0 (manifest: x32 y33 w1211 h87, image px) */
+      const SQ = { x: 80, y: 290, s: 1760 / 2304 };
+      const Q = { left: SQ.x + 32 * SQ.s, top: SQ.y + 33 * SQ.s, width: 1211 * SQ.s, height: 87 * SQ.s };
+
+      tl.set("#s3", { display: "block", opacity: 1 }, S3);
+      tl.fromTo("#s3-eyebrow", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, S3 + 0.1);
+      tl.fromTo("#s3-h", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, S3 + 0.2);
+      tl.fromTo("#s3-lead", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, S3 + 1.05);
+      STAIRS.forEach(([id], i) => {
+        tl.fromTo(id, { opacity: 0, y: -46 }, { opacity: 1, y: 0, duration: 0.42, ease: "back.out(1.7)" }, S3 + 1.2 + i * 0.3);
+      });
+
+      /* everything collapses into one line that lands on the real search box */
+      const COLLAPSE = S3 + 3.15;
+      tl.to("#s3a", { opacity: 0, y: -24, duration: 0.3, ease: "power2.in" }, COLLAPSE);
+      tl.set("#s3a", { display: "none" }, COLLAPSE + 0.35);
+      tl.to(".dd-t", { opacity: 0, duration: 0.18, ease: "power1.in" }, COLLAPSE + 0.05);
+      /* each box flies to the slot's centre line and squashes into a thin bar (transforms only) */
+      const QCX = Q.left + Q.width / 2;
+      const QCY = Q.top + Q.height / 2;
+      STAIRS.forEach(([id, x, y, w], i) => {
+        tl.to(id, { x: QCX - (x + w / 2), y: QCY - (y + 50), scaleX: Q.width / w, scaleY: 0.05, duration: 0.45, ease: "power3.inOut" }, COLLAPSE + 0.05 + i * 0.04);
+      });
+      /* ...then the bar opens up into the search box, exactly where the real #q sits */
+      const LINE = COLLAPSE + 0.62;
+      gsap.set("#slot", { left: Q.left, top: Q.top, width: Q.width, height: Q.height });
+      tl.set("#slot", { opacity: 1, scaleY: 0.05 }, LINE);
+      tl.set(".dd", { display: "none" }, LINE + 0.02);
+      tl.to("#slot", { scaleY: 1, duration: 0.28, ease: "back.out(1.6)" }, LINE + 0.04);
+      const LAND = LINE + 0.32;
+      tl.to("#sq", { opacity: 1, duration: 0.3, ease: "power1.out" }, LAND);
+      tl.set("#slot", { display: "none" }, LAND + 0.35);
+      tl.fromTo("#s3-h2", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, LINE);
+
+      /* typing: caret blinks, then the real page filters (debounce 100 ms) */
+      const CARET = { s0: 57, s1: 90, s2: 123 }; /* caret x in image px for "", "台", "台積" */
+      const caretAt = (x) => x * SQ.s;
+      gsap.set("#caret", { x: caretAt(CARET.s0) });
+      const T1 = LAND + 0.9; /* "台" */
+      const T2 = T1 + 0.7; /* "台積" */
+      [LAND + 0.15, LAND + 0.55].forEach((at) => {
+        tl.set("#caret", { opacity: 1 }, at);
+        tl.set("#caret", { opacity: 0 }, at + 0.25);
+      });
+      tl.set("#caret", { opacity: 1, x: caretAt(CARET.s1) }, T1);
+      tl.set("#sq1", { opacity: 1 }, T1 + 0.1);
+      tl.set("#sq0", { opacity: 0 }, T1 + 0.1);
+      tl.set("#caret", { x: caretAt(CARET.s2) }, T2);
+      /* "台積": keep the search row + the one remaining row from search-2, drop the rest of search-1 */
+      const KEEP = 300 * SQ.s; /* table bottom in search-2 (image y 294) + a hair */
+      tl.set("#sq2", { opacity: 1, clipPath: `inset(0px 0px ${633 - KEEP}px 0px)` }, T2 + 0.1);
+      tl.set("#sq1", { clipPath: `inset(${KEEP}px 0px 0px 0px)` }, T2 + 0.1);
+      tl.to("#sq1", { opacity: 0, y: 46, duration: 0.45, ease: "power2.in" }, T2 + 0.1);
+      tl.set("#sq1", { display: "none" }, T2 + 0.6);
+      [T2 + 0.75, T2 + 1.3].forEach((at) => {
+        tl.set("#caret", { opacity: 0 }, at);
+        tl.set("#caret", { opacity: 1 }, at + 0.28);
+      });
+      /* the one row left: 台積電 (search-2 row rect x34 y217 w2236 h75) */
+      gsap.set("#sq-row", { left: 34 * SQ.s - 6, top: 217 * SQ.s - 6, width: 2236 * SQ.s + 12, height: 75 * SQ.s + 12 });
+      tl.to(["#s3-h2", "#sq"], { y: 190, duration: 0.7, ease: "power2.inOut" }, T2 + 0.4);
+      tl.fromTo("#sq-row", { opacity: 0, scale: 1.04 }, { opacity: 1, scale: 1, duration: 0.4, ease: "power2.out" }, T2 + 0.8);
+
+      tl.to("#s3", { opacity: 0, duration: 0.4, ease: "power2.in" }, 19.4);
+      tl.set("#s3", { display: "none" }, 19.85);
+
+      /* =====================================================================
+         S4 RANGE (19.8 - 26.6s)
+         ===================================================================== */
+      const S4 = 19.8;
+      tl.set("#s4", { display: "block", opacity: 1 }, S4);
+      tl.fromTo("#s4-h", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, S4 + 0.1);
+      tl.fromTo("#chip", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, S4 + 0.4);
+
+      /* draw the trend: clip-path wipe left -> right, a pen dot rides the median line (manifest points) */
+      const REVEAL = S4 + 0.6;
+      const REVEAL_D = 1.9;
+      tl.to("#trend", { clipPath: "inset(0% 0% 0% 0%)", duration: REVEAL_D, ease: "none" }, REVEAL);
+      const MED = [[168, 635], [482, 604], [796, 599], [1111, 518], [1425, 544], [1739, 488], [2054, 416]];
+      const px = ([x, y]) => ({ x: x * TS, y: (y - TREND_Y0) * TS });
+      const atX = (x) => REVEAL + (x / 2304) * REVEAL_D; /* when the wipe edge reaches image x */
+      tl.set("#pen", px(MED[0]), REVEAL);
+      tl.to("#pen", { opacity: 1, duration: 0.15 }, atX(MED[0][0]));
+      for (let i = 1; i < MED.length; i++) {
+        tl.to("#pen", { ...px(MED[i]), duration: atX(MED[i][0]) - atX(MED[i - 1][0]), ease: "none" }, atX(MED[i - 1][0]));
+      }
+      tl.to("#pen", { scale: 1.35, duration: 0.25, ease: "power2.out", yoyo: true, repeat: 1 }, atX(MED[6][0]));
+
+      /* zoom out: the trend steps aside, two more real cards slide in, the coverage strip counts up */
+      const ASIDE = REVEAL + REVEAL_D + 0.45;
+      tl.to("#trend-wrap", { scale: 1100 / 1760, duration: 0.7, ease: "power3.inOut" }, ASIDE);
+      tl.fromTo("#card-g", { opacity: 0, x: 260 }, { opacity: 1, x: 0, duration: 0.6, ease: "power3.out" }, ASIDE + 0.3);
+      tl.fromTo("#card-p", { opacity: 0, x: 260 }, { opacity: 1, x: 0, duration: 0.6, ease: "power3.out" }, ASIDE + 0.45);
+
+      const STRIP = ASIDE + 0.85;
+      tl.fromTo("#strip", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, STRIP);
+      const cnt = { co: 0, ind: 0, yr: ALL.firstYear };
+      const stCo = $("st-co");
+      const stInd = $("st-ind");
+      const stYr = $("st-yr");
+      const paintStrip = () => {
+        stCo.textContent = comma(cnt.co);
+        stInd.textContent = String(Math.round(cnt.ind));
+        stYr.textContent = `${ALL.firstYear}–${Math.round(cnt.yr)}`;
+      };
+      paintStrip();
+      tl.to(cnt, { co: ALL.totalCompanies, ind: DATA.industryCount, yr: ALL.lastYear, duration: 1.2, ease: "power2.out", onUpdate: paintStrip }, STRIP);
+
+      tl.to("#s4", { opacity: 0, duration: 0.4, ease: "power2.in" }, 26.2);
+      tl.set("#s4", { display: "none" }, 26.65);
+
+      /* =====================================================================
+         S5 HEART (26.6 - 34s)
+         ===================================================================== */
+      const S5 = 26.6;
+      tl.set("#s5", { display: "block", opacity: 1 }, S5);
+      tl.fromTo("#s5-a", { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, S5 + 0.15);
+      tl.to("#s5-a", { opacity: 0, y: -30, duration: 0.3, ease: "power2.in" }, S5 + 1.75);
+      tl.set("#s5-a", { display: "none" }, S5 + 2.1);
+      tl.fromTo("#s5-b", { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, S5 + 2.3);
+      tl.to("#s5-b", { opacity: 0, y: -30, duration: 0.3, ease: "power2.in" }, S5 + 3.9);
+      tl.set("#s5-b", { display: "none" }, S5 + 4.25);
+
+      const LOCK = S5 + 4.2; /* 30.8 -> 34.0 */
+      tl.to("#lockup-glow", { opacity: 1, duration: 0.9, ease: "power1.out" }, LOCK);
+      tl.fromTo("#brand-row", { opacity: 0, y: 30, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: "back.out(1.5)" }, LOCK);
+      tl.fromTo("#subtitle", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, LOCK + 0.25);
+      tl.fromTo("#url", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, LOCK + 0.45);
+      tl.fromTo("#closing", { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, LOCK + 0.85);
+      tl.to("#fine", { opacity: 1, duration: 0.4, ease: "power1.out" }, LOCK + 1.05);
+
+      tl.to({}, { duration: 0.01 }, 33.99);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
