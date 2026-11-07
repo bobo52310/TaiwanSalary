@@ -3,6 +3,13 @@
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
 
+# Intro film + poster (src/pages/index.astro). Not content-hashed: give a re-rendered
+# film a new filename, or visitors keep the old one for up to a week.
+/intro-zh-tw.mp4
+  Cache-Control: public, max-age=604800
+/intro-poster-zh-tw.webp
+  Cache-Control: public, max-age=604800
+
 # Baseline security headers for every response.
 /*
   X-Content-Type-Options: nosniff

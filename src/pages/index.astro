@@ -72,6 +72,9 @@ const chips = [
   },
 ];
 
+// Length of public/intro-zh-tw.mp4 (docs/design/promo-intro-zh-tw); update when re-rendering.
+const INTRO_SECONDS = 34;
+
 const industryList = Object.keys(industries).sort((a, b) => a.localeCompare(b, 'zh-Hant'));
 const total = formatInt(rows.length);
 
@@ -98,6 +101,30 @@ const siteJsonLd = website(Astro.site, {
     <p class="tagline">
       一次查詢 {total} 家上市櫃公司「非擔任主管職務之全時員工」的年薪中位數、平均數與年增，資料來自公開資訊觀測站。
     </p>
+    <!-- Intro film: native <details> keeps the table above the fold and adds no client JS. -->
+    <details class="intro">
+      <summary>
+        <span class="intro-play" aria-hidden="true">▶</span>
+        <span>{INTRO_SECONDS} 秒看懂本站</span>
+        <span class="intro-meta">簡介動畫・無音軌</span>
+      </summary>
+      <video
+        class="intro-video"
+        controls
+        playsinline
+        preload="none"
+        width="1920"
+        height="1080"
+        poster="/intro-poster-zh-tw.webp"
+        aria-describedby="intro-note"
+      >
+        <source src="/intro-zh-tw.mp4" type="video/mp4" />
+        你的瀏覽器無法播放這支影片，可以<a href="/intro-zh-tw.mp4">直接下載觀看</a>。
+      </video>
+      <p class="intro-note" id="intro-note">
+        無音軌。畫面為本站實際介面，數字取自民國 114 年度資料；官方查詢頁的下拉選單為示意。
+      </p>
+    </details>
   </section>
 
   <ul class="chips" aria-label="全市場統計摘要">
@@ -187,6 +214,64 @@ const siteJsonLd = website(Astro.site, {
        one line on desktop, still wraps on narrower viewports. */
     max-width: 56em;
     color: var(--text-secondary);
+  }
+
+  .intro {
+    margin: 12px 0 0;
+    max-width: 880px;
+  }
+  .intro summary {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    padding: 5px 12px 5px 6px;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.88rem;
+    font-weight: 600;
+    list-style: none;
+    cursor: pointer;
+  }
+  .intro summary::-webkit-details-marker {
+    display: none;
+  }
+  .intro summary:hover {
+    border-color: var(--accent);
+  }
+  .intro-play {
+    display: inline-grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--seg-fill);
+    color: #fff;
+    font-size: 0.6rem;
+    /* optical centring: the ▶ glyph's visual mass sits left of its box */
+    padding-left: 2px;
+  }
+  .intro-meta {
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    font-weight: 400;
+  }
+  .intro-video {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    margin-top: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: #0d0d0d; /* the film's own background, so the frame never flashes light */
+  }
+  .intro-note {
+    margin: 8px 2px 0;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
   }
 
   .chips {

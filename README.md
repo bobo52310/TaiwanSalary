@@ -8,6 +8,14 @@
 
 > 官方的[公開資訊觀測站查詢頁](https://mopsov.twse.com.tw/mops/web/t100sb15)要逐一選擇年度/市場別/產業別才能看到零碎結果;本站把 **民國 108–114 年(2019–2025)** 全部資料整理成好查、好比較的靜態網站。
 
+## 簡介動畫
+
+![哪家給最多 簡介動畫](docs/promo/intro-zh-tw.gif)
+
+[下載 MP4](docs/promo/intro-zh-tw.mp4) · 原始檔(HyperFrames composition):[`docs/design/promo-intro-zh-tw/`](docs/design/promo-intro-zh-tw/)
+
+> 畫面為本站實際介面(由原始檔內的 `scripts/capture.cjs` 以 puppeteer 實拍),數字取自 repo 內的民國 114 年度資料;官方查詢頁的下拉選單為示意。
+
 ## 功能特色
 
 - **一頁查全部** — 首頁 SSR 全部 1,826 家(114 年度),即時搜尋公司名稱/代號、產業篩選、市場切換、點欄位排序,網址可分享(`/?q=台積&sort=median`)
@@ -37,6 +45,9 @@ src/
   pages/            index / company/[code] / industry/[name] / rank/[metric] / about / 404
   components/       SalaryTable, TrendChart(SVG), YoYBars, GenderCard, PercentileBar…
   scripts/          table-enhance.ts(搜尋/排序/篩選,唯一 client JS)
+docs/
+  promo/            簡介動畫成品(GIF、MP4)
+  design/           簡介動畫原始檔(HyperFrames composition + 截圖腳本)
 ```
 
 ## 開發
