@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" font-family="Noto Sans TC, sans-serif">
+  <image href="bg-linkedin.jpg" x="0" y="0" width="1200" height="630" preserveAspectRatio="xMidYMid slice"/>
+  <g transform="translate(64,60)">
+    <rect width="48" height="48" rx="11" fill="#2a78d6"/>
+    <text x="24" y="25" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="30" font-weight="700">薪</text>
+    <text x="64" y="25" dominant-baseline="central" fill="#c3c2b7" font-size="25" font-weight="700" letter-spacing="3">TAIWANSALARY</text>
+  </g>
+  <text x="64" y="226" fill="#ffffff" font-size="64" font-weight="800">公開，</text>
+  <text x="64" y="306" fill="#3987e5" font-size="64" font-weight="800">不等於查得到。</text>
+  <text x="64" y="380" fill="#c9d4e5" font-size="28" font-weight="600">上市櫃公司員工薪資的官方資料，</text>
+  <text x="64" y="424" fill="#c9d4e5" font-size="28" font-weight="600">整理成一般人真的能用的網站</text>
+  <g transform="translate(64,456)" font-size="22" font-weight="600">
+    <rect width="150" height="40" rx="20" fill="#1c3a5e"/>
+    <text x="75" y="21" text-anchor="middle" dominant-baseline="central" fill="#bcd3ee">Open Data</text>
+    <rect x="164" width="230" height="40" rx="20" fill="#1c3a5e"/>
+    <text x="279" y="21" text-anchor="middle" dominant-baseline="central" fill="#bcd3ee">Open Source · MIT</text>
+  </g>
+  <line x1="64" y1="548" x2="580" y2="548" stroke="#ffffff" stroke-opacity="0.08"/>
+  <text x="64" y="590" fill="#7f93ab" font-size="21" font-weight="500">salary.bobochen.dev · github.com/bobo52310/TaiwanSalary</text>
+</svg>

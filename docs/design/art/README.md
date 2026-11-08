@@ -13,8 +13,12 @@
 | `raw-sources.tsv` | 每張最終圖對應的 Codex 原始輸出路徑（`~/.codex/generated_images/…`，1254px PNG，只存在本機） | — |
 | `prompts/` | prompt 範本、4 張重生時改過的最終 prompt、風格參考圖 | — |
 | `scripts/normalize.sh` | 偵測主體範圍 → 統一縮放到約 70% 並置中 → 512 webp | — |
+| `social/` | 3 張社群貼文配圖的無字底圖（`bg-*.jpg`）＋ SVG 疊字模板＋ `render.sh` → 成品在 `docs/promo/social/{fb,threads,linkedin}.png` | FB／LinkedIn 1200×630、Threads 1080×1350 |
+| `notfound.webp` | 404 頁插圖原檔（網站用 `public/notfound-240.webp`） | 512×512 |
 
-尚未接進網站（`public/`）；目前只是素材。
+產業插圖與排行榜背景由 `scripts/industry-icons.ts`、`scripts/og-pages.ts` 接進網站（`pnpm art:build`）。
+
+社群配圖的數字是直接打在 SVG 裡的，必須和 `docs/social-posts.md` 一致（114 年度）。更新年度資料時要一起改，改完跑 `docs/design/art/social/render.sh`。Threads 圖只放 144.7 萬（全體上市員工加權平均），刻意不放 78.2 萬（公司中位數的中位數），因為兩者定義不同，不能畫在同一張示意圖上。
 
 ## 品牌規則
 

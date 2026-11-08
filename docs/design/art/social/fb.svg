@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" font-family="Noto Sans TC, sans-serif">
+  <image href="bg-fb.jpg" x="0" y="0" width="1200" height="630" preserveAspectRatio="xMidYMid slice"/>
+  <g transform="translate(64,60)">
+    <rect width="48" height="48" rx="11" fill="#2a78d6"/>
+    <text x="24" y="25" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="30" font-weight="700">薪</text>
+    <text x="64" y="25" dominant-baseline="central" fill="#c3c2b7" font-size="25" font-weight="700" letter-spacing="3">TAIWANSALARY</text>
+  </g>
+  <text x="64" y="226" fill="#ffffff" font-size="62" font-weight="800">下拉選單，</text>
+  <text x="64" y="304" fill="#3987e5" font-size="62" font-weight="800">換成一個搜尋框。</text>
+  <text x="64" y="378" fill="#c9d4e5" font-size="28" font-weight="600">1,800 多家上市櫃公司的員工薪資</text>
+  <text x="64" y="422" fill="#c9d4e5" font-size="28" font-weight="600">一頁搜尋、排序、比較</text>
+  <g transform="translate(64,456)" font-size="22" font-weight="600">
+    <rect width="300" height="40" rx="20" fill="#1c3a5e"/>
+    <text x="150" y="21" text-anchor="middle" dominant-baseline="central" fill="#bcd3ee">民國 108–114 年 · 7 個年度</text>
+    <rect x="314" width="170" height="40" rx="20" fill="#243449"/>
+    <text x="399" y="21" text-anchor="middle" dominant-baseline="central" fill="#9fb3cc">免費 · 開源</text>
+  </g>
+  <line x1="64" y1="548" x2="560" y2="548" stroke="#ffffff" stroke-opacity="0.08"/>
+  <text x="64" y="590" fill="#7f93ab" font-size="21" font-weight="500">資料來源：公開資訊觀測站 MOPS · salary.bobochen.dev</text>
+</svg>

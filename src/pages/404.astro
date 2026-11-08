@@ -11,6 +11,7 @@ const description = '找不到這個頁面。可能是公司代號不存在，�
   <meta slot="head" name="robots" content="noindex" />
 
   <article class="notfound">
+    <img class="nf-art" src="/notfound-240.webp" width="120" height="120" alt="" decoding="async" />
     <p class="code">404</p>
     <h1>找不到這個頁面</h1>
     <p class="lead">你要找的頁面不存在，或網址已經變動。</p>
@@ -36,6 +37,17 @@ const description = '找不到這個頁面。可能是公司代號不存在，�
   .notfound {
     margin: 48px 0;
     max-width: 60ch;
+  }
+  /* Text-free illustration (docs/design/art/notfound.webp), same icon-tile look as
+     the industry pages: its own navy doubles as the tile in both themes. */
+  .nf-art {
+    display: block;
+    width: 120px;
+    height: 120px;
+    margin-bottom: 20px;
+    border-radius: 22%;
+    border: 1px solid var(--border);
+    background: #12203a;
   }
   .code {
     margin: 0;
