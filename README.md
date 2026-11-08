@@ -42,6 +42,7 @@ scripts/          資料管線(本地執行,每年一次)
   og-companies.ts   平均薪資前 100 名個股社群分享卡 → public/og/company/*.png(SVG → rsvg-convert)
   industry-icons.ts 產業插圖原檔 → 頁面用圖示 public/industry-art/*.webp
   og-pages.ts       產業/產業總覽/排行榜分享卡 → public/og/{industry,rank}/*.png
+  promo-annual.ts   年度資料更新社群主視覺 → docs/promo/social/annual-{年度}.png(年度、家數由資料計算)
 src/
   data/             committed 資料快照(14 個年度檔 + 3 個彙總檔)
   pages/            index / company/[code] / industry/[name] / rank/[metric] / about / 404
@@ -79,6 +80,7 @@ pnpm data:parse -- --all           # 解析(若 MOPS 改版面會 loud-fail,依�
 pnpm data:build                    # 合併 + 驗證(台積電 spot-check、列數、代號唯一性)
 pnpm og:build                      # 依新數據重新產出前 100 名分享卡(排名/數字會變動)
 pnpm art:build                     # 重新產出產業/排行榜分享卡(數字與第 1 名會變動)
+pnpm promo:annual                  # 產出「民國 N 年度薪資資料上線」社群主視覺 docs/promo/social/annual-N.png
 git diff --stat                       # 目視檢查
 git commit && git push                # CF Pages 自動部署
 ```
@@ -122,7 +124,11 @@ git commit && git push                # CF Pages 自動部署
 
 ## 姊妹專案
 
-- **[哪裡最有錢 · 台灣所得地圖](https://taxmap.bobochen.dev/)** — 以村里為單位視覺化財政部綜所稅統計,7,747 個村里、2012–2023 年的平均/中位數所得與排名趨勢。跟本站「看公司薪資」互補,一起看「看地區所得」。
+[![哪里最有錢 · 台灣所得地圖:看公司薪資,也看地區所得](docs/promo/cross/taxmap-banner.png)](https://taxmap.bobochen.dev/)
+
+- **[哪里最有錢 · 台灣所得地圖](https://taxmap.bobochen.dev/)** — 以村里為單位視覺化財政部綜所稅統計,7,747 個村里、2012–2024 年(2024 年為初步核定)的平均/中位數所得與排名趨勢。跟本站「看公司薪資」互補,一起看「看地區所得」。
+
+> 橫幅裡的台灣地圖是 TaxMap 真實資料(2024 年各村里綜合所得中位數,內政部村里界),不是 AI 畫的;原始檔與重製方式見 [`docs/design/art/cross/`](docs/design/art/cross/)。
 
 ## License
 

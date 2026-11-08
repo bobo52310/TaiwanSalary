@@ -14,11 +14,15 @@
 | `prompts/` | prompt 範本、4 張重生時改過的最終 prompt、風格參考圖 | — |
 | `scripts/normalize.sh` | 偵測主體範圍 → 統一縮放到約 70% 並置中 → 512 webp | — |
 | `social/` | 3 張社群貼文配圖的無字底圖（`bg-*.jpg`）＋ SVG 疊字模板＋ `render.sh` → 成品在 `docs/promo/social/{fb,threads,linkedin}.png` | FB／LinkedIn 1200×630、Threads 1080×1350 |
+| `annual/bg.jpg` | 年度資料更新主視覺的無字底圖（一疊半透明資料卡，新的一張正落下）；左側約 60% 留白給疊字。`scripts/promo-annual.ts`（`pnpm promo:annual`）從資料算出年度、年度範圍與家數疊字 → `docs/promo/social/annual-{年度}.png`，每年重跑即可，不用改圖 | 1200×630、jpg q88 |
+| `cross/` | 姊妹站 TaxMap（哪里最有錢）互推橫幅：無字底圖 `bg.jpg`（prompt `prompts/cross-taxmap.txt`）＋真實資料台灣地圖 `taxmap-map.svg`（`build-map.ts` 產生）＋ SVG 疊字模板 `banner.svg` ＋ `render.sh` → 成品 `docs/promo/cross/taxmap-banner.png`，兩個 repo 的 README 與社群都可用 | 1200×630 |
 | `notfound.webp` | 404 頁插圖原檔（網站用 `public/notfound-240.webp`） | 512×512 |
 
 產業插圖與排行榜背景由 `scripts/industry-icons.ts`、`scripts/og-pages.ts` 接進網站（`pnpm art:build`）。
 
 社群配圖的數字是直接打在 SVG 裡的，必須和 `docs/social-posts.md` 一致（114 年度）。更新年度資料時要一起改，改完跑 `docs/design/art/social/render.sh`。Threads 圖只放 144.7 萬（全體上市員工加權平均），刻意不放 78.2 萬（公司中位數的中位數），因為兩者定義不同，不能畫在同一張示意圖上。
+
+TaxMap 互推橫幅的地圖**不是 AI 畫的**：`cross/build-map.ts` 讀姊妹 repo TaxMap-TW（預設在本 repo 旁的 `../TaxMap-TW`，唯讀）的內政部村里界 `data-raw/villages.simplified.geojson`，用 TaxMap 自己的對照表 `public/data/map/code-to-key.json`（VILLCODE → 縣市|鄉鎮|村里）接上 `public/data/map/metrics-2024.json` 的中位數（TaxMap 預設畫面：2024 年、中位數、初步核定），再用 mapshaper 投影成 TWD97／TM2、北朝上、簡化 300 公尺、依色階合併 → `taxmap-map.svg`（約 360 KB）。金門、連江不畫（會把本島縮小約三成），釣魚台、東沙、太平島、彭佳嶼等遠方小島裁掉；澎湖、綠島、蘭嶼、龜山島保留真實位置。色階用 TaxMap 品牌 YlGnBu（brand-700 → brand-50）由暗到亮、越亮越高，8 級對數等比分級（每級 ×1.15，從 350 千元起），單調且與數值成比例；TaxMap 網站自己的地圖是 OrRd 7 級絕對門檻（30／50／80／130／200／350 萬），在橫幅尺寸下約 97% 村里落在其中兩級、整座島幾乎單色，所以這裡改用較細的分級，圖上只標「低→高」，不標金額。TaxMap 換年度資料時重跑 `pnpm exec tsx docs/design/art/cross/build-map.ts`，並同步改 `build-map.ts` 的 `YEAR` 與 `banner.svg` 的圖說年度，再跑 `cross/render.sh`。
 
 ## 品牌規則
 

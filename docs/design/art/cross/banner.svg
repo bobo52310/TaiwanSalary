@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" font-family="Noto Sans TC, sans-serif">
+  <!-- Cross-promotion banner TaiwanSalary × TaxMap. Rendered by render.sh → docs/promo/cross/taxmap-banner.png.
+       bg.jpg: text-free Codex plate (prompt docs/design/art/prompts/cross-taxmap.txt).
+       taxmap-map.svg: real 內政部 village polygons coloured by TaxMap's 2024 median, from build-map.ts.
+       Every word and figure below is typed here; sources: 1,800 多家 ← src/data/companies.json (1,847 listed,
+       1,826 in 114 年度); 7,747 個村里 ← TaxMap-TW public/data/villages-meta.json villageCount.
+       Layout: map and caption keep ≥56px from the top / right / bottom edges; the caption shares the
+       left footer's baseline (y=570). Small text is ≥24px so it survives a 500px-wide feed thumbnail. -->
+  <image href="bg.jpg" x="0" y="0" width="1200" height="630" preserveAspectRatio="xMidYMid slice"/>
+
+  <!-- the two wordmarks, same treatment as the TAIWANSALARY lockup in scripts/og-pages.ts -->
+  <text x="64" y="84" dominant-baseline="central" fill="#c3c2b7" font-size="22" font-weight="700" letter-spacing="3">TAIWANSALARY × TAXMAP</text>
+
+  <text x="64" y="180" fill="#ffffff" font-size="60" font-weight="800">看公司薪資，</text>
+  <text x="64" y="254" fill="#7fcdde" font-size="60" font-weight="800">也看地區所得。</text>
+
+  <!-- 哪家給最多: the 薪 tile from scripts/og-pages.ts BRAND -->
+  <g transform="translate(64,300)">
+    <rect width="64" height="64" rx="15" fill="#2a78d6"/>
+    <text x="32" y="33" text-anchor="middle" dominant-baseline="central" fill="#fff" font-size="40" font-weight="700">薪</text>
+    <text x="88" y="15" dominant-baseline="central" fill="#ffffff" font-size="30" font-weight="800">哪家給最多</text>
+    <text x="252" y="16" dominant-baseline="central" fill="#6ea8ee" font-size="22" font-weight="500">salary.bobochen.dev</text>
+    <text x="88" y="52" dominant-baseline="central" fill="#c9d4e5" font-size="25" font-weight="500">看 1,800 多家上市櫃公司的員工薪資</text>
+  </g>
+
+  <!-- 哪里最有錢: the 里 tile from TaxMap-TW public/favicon.svg -->
+  <g transform="translate(64,396)">
+    <rect width="64" height="64" rx="12" fill="#225ea8"/>
+    <text x="32" y="33" text-anchor="middle" dominant-baseline="central" fill="#fff" font-family="Noto Serif TC, Songti TC, serif" font-size="42" font-weight="700" transform="rotate(-4 32 32)">里</text>
+    <text x="88" y="15" dominant-baseline="central" fill="#ffffff" font-size="30" font-weight="800">哪里最有錢</text>
+    <text x="252" y="16" dominant-baseline="central" fill="#7fcdde" font-size="22" font-weight="500">taxmap.bobochen.dev</text>
+    <text x="88" y="52" dominant-baseline="central" fill="#c9d4e5" font-size="25" font-weight="500">看全台 7,747 個村里的所得地圖</text>
+  </g>
+
+  <line x1="64" y1="518" x2="560" y2="518" stroke="#ffffff" stroke-opacity="0.1"/>
+  <text x="64" y="570" fill="#8ea1b8" font-size="24" font-weight="500">兩個姊妹站 · 資料：公開資訊觀測站、財政部</text>
+
+  <!-- real map: 440×606 native, scaled to 476 high; box = x 798.4–1144, y 56–532 -->
+  <image href="taxmap-map.svg" x="798.4" y="56" width="345.6" height="476"/>
+
+  <!-- legend sits in the empty sea SW of the island (clear of Penghu, Liuqiu and the south cape);
+       swatches = RAMP in build-map.ts (low → high) -->
+  <g transform="translate(644,500)" font-size="22" font-weight="500" fill="#a9bbd1">
+    <text x="0" y="0" dominant-baseline="central">低</text>
+    <g transform="translate(30,-7)">
+      <rect x="0" width="18" height="14" fill="#253494"/>
+      <rect x="18" width="18" height="14" fill="#225ea8"/>
+      <rect x="36" width="18" height="14" fill="#1d91c0"/>
+      <rect x="54" width="18" height="14" fill="#41b6c4"/>
+      <rect x="72" width="18" height="14" fill="#7fcdde"/>
+      <rect x="90" width="18" height="14" fill="#c1e6ee"/>
+      <rect x="108" width="18" height="14" fill="#e0f3f7"/>
+      <rect x="126" width="18" height="14" fill="#f7fcfd"/>
+    </g>
+    <text x="182" y="0" dominant-baseline="central">高</text>
+  </g>
+  <text x="1160" y="570" text-anchor="end" fill="#a9bbd1" font-size="24" font-weight="500">地圖：2024 年村里綜合所得中位數（初步核定）</text>
+</svg>
