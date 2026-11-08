@@ -8,6 +8,7 @@ import type { CompaniesFile, IndustriesFile, IndustryTableRow } from '../../lib/
 import companiesData from '../../data/companies.json';
 import industriesData from '../../data/industries.json';
 import { breadcrumbList } from '../../lib/seo';
+import { industryIconUrl, industryOgPath } from '../../lib/industry-art';
 
 const companiesFile = companiesData as unknown as CompaniesFile;
 const industries = industriesData as unknown as IndustriesFile;
@@ -55,6 +56,12 @@ const rows: IndustryTableRow[] = Object.values(companiesFile.companies)
     return b.medianK - a.medianK;
   });
 
+// 160px source for the 80px header icon (2× for retina); null → header renders without it.
+// The <img> is above the fold, so it is not lazy-loaded (it would pop in late); it is only
+// decoration, so fetchpriority=low keeps its ~3 KB from outranking CSS or the figures.
+// width/height reserve the box, so a late icon never shifts the layout.
+const iconUrl = industryIconUrl(name, 160);
+
 const staleCount = rows.filter((r) => r.stale).length;
 
 // Industry-level yearly trend (medians-of-medians + averages-of-averages).
@@ -82,20 +89,40 @@ const breadcrumbJsonLd = breadcrumbList(Astro.site, [
 ]);
 ---
 
-<Base title={title} description={description} canonical={`/industry/${encodeURIComponent(name)}/`}>
+<Base
+  title={title}
+  description={description}
+  canonical={`/industry/${encodeURIComponent(name)}/`}
+  ogImage={industryOgPath(name) ?? undefined}>
   <script type="application/ld+json" is:inline slot="head" set:html={JSON.stringify(breadcrumbJsonLd)} />
 
   <article class="industry">
     <header class="i-head">
       <p class="crumb"><a href="/">薪資查詢</a> / <a href="/industry/">產業</a></p>
-      <h1>{name} 薪資排行</h1>
-      {
-        latestStat ? (
-          <p class="intro">
-            該產業共 <b>{formatInt(latestStat.count)}</b> 家上市櫃公司，民國 {latestKey} 年度「中位數的中位數」<b>{formatWanUnit(latestStat.medianOfMediansK)}</b>、平均數的平均數 <b>{formatWanUnit(latestStat.avgOfAvgK)}</b>。
-          </p>
-        ) : null
-      }
+      <div class:list={['i-hero', iconUrl && 'has-icon']}>
+        {
+          iconUrl ? (
+            <img
+              class="i-icon"
+              src={iconUrl}
+              width="80"
+              height="80"
+              alt=""
+              loading="eager"
+              fetchpriority="low"
+              decoding="async"
+            />
+          ) : null
+        }
+        <h1>{name} 薪資排行</h1>
+        {
+          latestStat ? (
+            <p class="intro">
+              該產業共 <b>{formatInt(latestStat.count)}</b> 家上市櫃公司，民國 {latestKey} 年度「中位數的中位數」<b>{formatWanUnit(latestStat.medianOfMediansK)}</b>、平均數的平均數 <b>{formatWanUnit(latestStat.avgOfAvgK)}</b>。
+            </p>
+          ) : null
+        }
+      </div>
     </header>
 
     {
@@ -161,6 +188,52 @@ const breadcrumbJsonLd = breadcrumbList(Astro.site, [
   .intro b {
     color: var(--text);
     font-variant-numeric: tabular-nums;
+  }
+  /* With an icon: icon spans the h1 + intro rows on desktop. On phones it shrinks to sit
+     beside the h1 only and the intro drops to full width, so a long industry name
+     (電腦及週邊設備業) still has room and the figures aren't squeezed into a narrow column. */
+  .i-hero.has-icon {
+    display: grid;
+    grid-template-columns: 80px minmax(0, 1fr);
+    grid-template-areas:
+      'icon title'
+      'icon intro';
+    column-gap: 18px;
+    align-items: center;
+  }
+  .i-icon {
+    grid-area: icon;
+    width: 80px;
+    height: 80px;
+    border-radius: 22%; /* same icon-tile rounding as CompanyLogo */
+    border: 1px solid var(--border);
+    /* The art's own navy: shows while the icon loads, and as the tile in both themes. */
+    background: #12203a;
+  }
+  .i-hero.has-icon h1 {
+    grid-area: title;
+  }
+  .i-hero.has-icon .intro {
+    grid-area: intro;
+  }
+  @media (max-width: 640px) {
+    .i-hero.has-icon {
+      grid-template-columns: 52px minmax(0, 1fr);
+      grid-template-areas:
+        'icon title'
+        'intro intro';
+      column-gap: 12px;
+    }
+    .i-icon {
+      width: 52px;
+      height: 52px;
+    }
+    .i-hero.has-icon h1 {
+      margin-bottom: 0;
+    }
+    .i-hero.has-icon .intro {
+      margin-top: 10px;
+    }
   }
   .block {
     margin-top: 28px;

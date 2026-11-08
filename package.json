@@ -17,7 +17,8 @@
     "data:parse": "tsx scripts/parse-mops.ts",
     "data:build": "tsx scripts/build-data.ts",
     "data:all": "tsx scripts/fetch-mops.ts --all && tsx scripts/parse-mops.ts --all && tsx scripts/build-data.ts",
-    "og:build": "tsx scripts/og-companies.ts"
+    "og:build": "tsx scripts/og-companies.ts",
+    "art:build": "tsx scripts/industry-icons.ts && tsx scripts/og-pages.ts"
   },
   "dependencies": {
     "astro": "^7.0.5"

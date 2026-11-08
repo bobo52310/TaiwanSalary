@@ -10,6 +10,10 @@
 /intro-poster-zh-tw.webp
   Cache-Control: public, max-age=604800
 
+# Industry icons (public/industry-art/, from scripts/industry-icons.ts). Not content-hashed: a regenerated icon can take up to a week to reach returning visitors.
+/industry-art/*
+  Cache-Control: public, max-age=604800
+
 # Baseline security headers for every response.
 /*
   X-Content-Type-Options: nosniff

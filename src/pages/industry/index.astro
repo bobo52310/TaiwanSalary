@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import Explainer from '../../components/Explainer.astro';
 import { formatWan, formatInt, rocToCe } from '../../lib/format';
+import { industryIconUrl } from '../../lib/industry-art';
 import type { CompaniesFile, IndustriesFile } from '../../lib/types';
 import companiesData from '../../data/companies.json';
 import industriesData from '../../data/industries.json';
@@ -16,6 +17,8 @@ interface Row {
   medianOfMediansK: number | null;
   avgOfAvgK: number | null;
   year: number;
+  /** 64px industry icon URL, or null when no art exists for this industry. */
+  icon: string | null;
 }
 
 const rows: Row[] = Object.keys(industries)
@@ -33,6 +36,7 @@ const rows: Row[] = Object.keys(industries)
       medianOfMediansK: s.medianOfMediansK,
       avgOfAvgK: s.avgOfAvgK,
       year: key,
+      icon: industryIconUrl(name, 64),
     };
   })
   .sort((a, b) => {
@@ -55,7 +59,7 @@ const title = `產業薪資總覽｜${industryCount} 種產業中位數比較（
 const description = `台灣上市櫃 ${industryCount} 種產業非主管全時員工薪資比較，民國 ${META_LATEST} 年度各產業「中位數的中位數」與「平均數的平均數」排行。`;
 ---
 
-<Base title={title} description={description} canonical="/industry/">
+<Base title={title} description={description} canonical="/industry/" ogImage="/og/industry/index.png">
   <article class="ind-index">
     <header>
       <p class="crumb"><a href="/">薪資查詢</a> / 產業</p>
@@ -92,7 +96,12 @@ const description = `台灣上市櫃 ${industryCount} 種產業非主管全時�
             rows.map((r) => (
               <tr data-n={r.name}>
                 <td class="c-name">
-                  <a href={`/industry/${encodeURIComponent(r.name)}/`}>{r.name}</a>
+                  <a class="ind-link" href={`/industry/${encodeURIComponent(r.name)}/`}>
+                    {r.icon ? (
+                      <img class="ind-icon" src={r.icon} width="28" height="28" alt="" loading="lazy" decoding="async" />
+                    ) : null}
+                    <span class="ind-name">{r.name}</span>
+                  </a>
                 </td>
                 <td class="c-num" data-s={r.count}>
                   {formatInt(r.count)}
@@ -228,6 +237,39 @@ const description = `台灣上市櫃 ${industryCount} 種產業非主管全時�
   .idx-table .c-name a {
     font-weight: 550;
   }
+  /* Icon + name sit on one flex line so the icon is centred on the text whatever the font
+     metrics. Sorting reads the row's data-n, not cell text, so the extra markup is inert.
+     Block-level flex + fit-content (not inline-flex): an inline-flex box sits on the text
+     baseline and the line box grows ~7px for the descender gap, inflating every row. */
+  .ind-link {
+    display: flex;
+    width: fit-content;
+    align-items: center;
+    gap: 10px;
+  }
+  /* Hover underline on the name only, so it doesn't stretch across the icon gap. */
+  .ind-link:hover {
+    text-decoration: none;
+  }
+  .ind-link:hover .ind-name {
+    text-decoration: underline;
+  }
+  .ind-icon {
+    flex: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 22%; /* same icon-tile rounding as CompanyLogo */
+    border: 1px solid var(--border);
+    /* The art's own navy: shows while the lazy icon loads, and as the tile in both themes. */
+    background: #12203a;
+  }
+  /* The 28px icon would make rows ~4px taller than text-only rows; trim the name cell's
+     vertical padding so the table keeps its density (phones: see the 640px block below). */
+  @media (min-width: 641px) {
+    .idx-table td.c-name {
+      padding-block: 6px;
+    }
+  }
   .idx-table tbody tr {
     border-top: 1px solid var(--border);
   }
@@ -240,6 +282,23 @@ const description = `台灣上市櫃 ${industryCount} 種產業非主管全時�
     .idx-table th,
     .idx-table td {
       padding: 7px 10px;
+    }
+    .ind-link {
+      gap: 6px;
+    }
+    .ind-icon {
+      width: 22px;
+      height: 22px;
+    }
+  }
+  /* The median column is the point of this table, and on a phone the name column's width
+     decides how much of it is on screen. Measured at 390px: without icons the median figure
+     fits with 13px to spare; a 22px icon + gap costs 28px and pushes it off the edge. The
+     icon needs ≥ ~412px of viewport, so below that it is hidden (display:none also keeps the
+     lazy image from being fetched). Re-measure if the longest industry name changes. */
+  @media (max-width: 411px) {
+    .ind-icon {
+      display: none;
     }
   }
 

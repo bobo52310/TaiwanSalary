@@ -72,7 +72,11 @@ const rankJsonLd = itemList(
 );
 ---
 
-<Base title={copy.title} description={copy.description} canonical={`/rank/${metric}/`}>
+<Base
+  title={copy.title}
+  description={copy.description}
+  canonical={`/rank/${metric}/`}
+  ogImage={`/og/rank/${metric}.png`}>
   <script type="application/ld+json" is:inline slot="head" set:html={JSON.stringify(breadcrumbJsonLd)} />
   <script type="application/ld+json" is:inline slot="head" set:html={JSON.stringify(rankJsonLd)} />
 
